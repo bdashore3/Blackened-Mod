@@ -1,0 +1,8 @@
+id=BlackenedMod
+name=BlackenedMod
+version=v9.1
+versionCode=1
+author=xfirefly93, kingbri
+description=A kernel tuning script made for the Pixel(XL) and pixel 2 XL
+support=https://forum.xda-developers.com/apps/magisk/module-audio-modification-library-t3579612
+minMagisk=1700
