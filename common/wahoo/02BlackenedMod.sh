@@ -1,19 +1,42 @@
 #!/system/bin/sh
 
 #
-# BlackenedMod by xFirefly93 @ XDA
-# Various strictly selected, carefully optimized & adjusted       # tweaks for better day to day performance and battery life,
+# BlackenedMod v9.1 (Test Build #3) by the open source # loving BlackenedMod team over at XDA-developers;
+# Various strictly selected, carefully optimized & adjusted       # tweaks for better day to day performance & battery life,
 # specially tuned for the Wahoo / Google Pixel 2 line-up;
 #
 
-sleep 15;
+# Pause script execution a little for Magisk Boot Service;
+sleep 44;
 
-# Disable sysctl.conf to prevent ROM interference #1
+# Disable sysctl.conf to prevent ROM interference
 if [ -e /system/etc/sysctl.conf ]; then
   mount -o remount,rw /system;
   mv /system/etc/sysctl.conf /system/etc/sysctl.conf.bak;
   mount -o remount,ro /system;
 fi;
+
+# Add the full possibilty to either disable and / or enable a few Google Play Services background based services;
+# pm disable com.google.android.gms/com.google.android.gms.analytics.service.AnalyticsService;
+# pm disable com.google.android.gms/com.google.android.gms.analytics.AnalyticsService;
+# pm disable com.google.android.gms/com.google.android.gms.analytics.AnalyticsTaskService;
+# pm disable com.google.android.gms/com.google.android.gms.analytics.internal.PlayLogReportingService 
+# pm disable com.google.android.gms/com.google.android.gms.analytics.AnalyticsReceiver;
+# pm disable com.google.android.gms/com.google.android.gms.mdm.services.RingService;
+# pm disable com.google.android.gms/com.google.android.gms.mdm.services.NetworkQualityAndroidService;
+# pm disable com.google.android.gms/com.google.android.gms.mdm.services.MdmPhoneWearableListenerService;
+# pm disable com.google.android.gms/com.google.android.gms.mdm.services.LockscreenMessageService;
+# pm disable com.google.android.gms/com.google.android.gms.mdm.services.DeviceManagerApiService;
+# pm disable com.google.android.gms/com.google.android.gms.mdm.services.GcmReceiverService;
+# pm disable com.google.android.gms/com.google.android.gms.mdm.receivers.MdmDeviceAdminReceiver;
+# pm disable com.google.android.gms/com.google.android.gms.mdm.receivers.RetryAfterAlarmReceiver;
+# pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinServiceImposeReceiver;
+# pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinServiceSecretCodeReceiver;
+# pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinServiceTriggerReceiver;
+# pm disable com.google.android.gms/com.google.android.gms.checkin.EventLogService;
+# pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinService;
+# pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinApiService;
+# pm disable com.google.android.gms/com.google.android.gms.clearcut.debug.ClearcutDebugDumpService
 
 # Mounting tweak for better overall partition performance;
 busybox mount -o remount,nosuid,nodev,noatime,nodiratime -t auto /;
@@ -30,7 +53,7 @@ echo "4-7" > /dev/cpuset/restricted/cpus
 echo "4-7" > /dev/cpuset/system-background/cpus
 echo "0-7" > /dev/cpuset/top-app/cpus
 
-# Enable schedtune foreground and gain a well deserved smoothness boost with one extra snap on top of it; #2
+# Enable schedtune foreground and gain a well deserved smoothness boost with one extra snap on top of it;
 echo "8" > /dev/stune/foreground/schedtune.boost
 
 # FileSystem (FS) optimized tweaks & enhancements for a improved userspace experience;
@@ -42,11 +65,14 @@ echo "128" > /proc/sys/kernel/random/read_wakeup_threshold
 echo "96" > /proc/sys/kernel/random/urandom_min_reseed_secs
 echo "2560" > /proc/sys/kernel/random/write_wakeup_threshold
 
-# Kernel based tweaks that reduces the total amount of wasted CPU cycles and gives back a huge amount of needed performance to both the system and the user;
+# Kernel based tweaks that reduces the total amount of wasted CPU cycles and gives back a huge amount of needed performance as well as battery life savings to both the whole system and the user experience itself;
 echo "0" > /proc/sys/kernel/compat-log
 echo "0" > /proc/sys/kernel/panic
 echo "0" > /proc/sys/kernel/panic_on_oops
 echo "0" > /proc/sys/kernel/perf_cpu_time_max_percent
+echo "15000000" > /proc/sys/kernel/sched_latency_ns
+echo "2000000" > /proc/sys/kernel/sched_min_granularity_ns
+echo "10000000" > /proc/sys/kernel/sched_wakeup_granularity_ns
 
 # Increase how much CPU bandwidth (CPU time) realtime scheduling processes are given for slightly improved system stability and minimized chance of system freezes & lockups;
 echo "980000" > /proc/sys/kernel/sched_rt_runtime_us
@@ -110,7 +136,7 @@ for i in $(find /sys/ -name log_ecn_error); do
 echo "0" > $i;
 done
 
-# Turn off all snapshot crashdumper modules; #3
+# Turn off all snapshot crashdumper modules;
 for i in $(find /sys/ -name snapshot_crashdumper); do
 echo "0" > $i;
 done
@@ -118,27 +144,7 @@ done
 # Disable gesture based vibration because it is honestly not even worth having enabled at all;
 echo "0" > /sys/android_touch/vib_strength
 
-# Tweak the CFQ IO scheduler in a attempt to "fix" the possible queueing latency that the scheduler "fairness logic" may come with to some possible extent; #4
-echo "210" > /sys/block/sda/queue/iosched/fifo_expire_async
-echo "105" > /sys/block/sda/queue/iosched/fifo_expire_sync
-echo "0" > /sys/block/sda/queue/iosched/low_latency
-echo "210" > /sys/block/sdb/queue/iosched/fifo_expire_async
-echo "105" > /sys/block/sdb/queue/iosched/fifo_expire_sync
-echo "0" > /sys/block/sdb/queue/iosched/low_latency
-echo "210" > /sys/block/sdc/queue/iosched/fifo_expire_async
-echo "105" > /sys/block/sdc/queue/iosched/fifo_expire_sync
-echo "0" > /sys/block/sdc/queue/iosched/low_latency
-echo "210" > /sys/block/sdd/queue/iosched/fifo_expire_async
-echo "105" > /sys/block/sdd/queue/iosched/fifo_expire_sync
-echo "0" > /sys/block/sdd/queue/iosched/low_latency
-echo "210" > /sys/block/sde/queue/iosched/fifo_expire_async
-echo "105" > /sys/block/sde/queue/iosched/fifo_expire_sync
-echo "0" > /sys/block/sde/queue/iosched/low_latency
-echo "210" > /sys/block/sdf/queue/iosched/fifo_expire_async
-echo "105" > /sys/block/sdf/queue/iosched/fifo_expire_sync
-echo "0" > /sys/block/sdf/queue/iosched/low_latency
-
-# Wide block based tuning for reduced lag and less possible amount of general IO scheduling based overhead (Thanks to pkgnex @ XDA for the more than pretty much simplified version of this tweak. You really rock, dude!); #5
+# Wide block based tuning for reduced lag and less possible amount of general IO scheduling based overhead (Thanks to pkgnex @ XDA for the more than pretty much simplified version of this tweak. You really rock, dude!);
 for i in /sys/block/*/queue; do
   echo 0 > $i/add_random;
   echo 0 > $i/iostats;
@@ -183,6 +189,11 @@ echo "128" > /sys/class/net/rmnet_ipa0/tx_queue_len
 echo "128" > /sys/class/net/sit0/tx_queue_len
 echo "128" > /sys/class/net/wlan0/tx_queue_len
 
+# Display Calibration that will be close to D65 (6500K) (Boosted). Thanks to Juzman @ XDA for this contribution;
+# echo "256 249 226" > /sys/devices/platform/kcal_ctrl.0/kcal
+# echo "5" > /sys/devices/platform/kcal_ctrl.0/kcal_min
+# echo "257" > /sys/devices/platform/kcal_ctrl.0/kcal_val
+
 # Optimize and lower both the battery drain and overall power consumption that is caused by the Schedutil governor by biasing it to use slightly lower frequency steps, but do this without sacrificing performance or overall UI fluidity. See this as a balanced in-kernel power save mode, but without any notable traces of the "semi-typical" smoothness regressions;
 
 # Little Cluster;
@@ -197,8 +208,9 @@ echo "775" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/up_rate_limit_us
 echo "0" > /sys/devices/system/edac/cpu/log_ce
 echo "0" > /sys/devices/system/edac/cpu/log_ue
 
-# Disable Gentle Fair Sleepers for a smoother UI;
+# Tweak the kernel task scheduler for improved overall system performance and user interface responsivness during all kind of possible workload based scenarios;
 echo "NO_GENTLE_FAIR_SLEEPERS" > /sys/kernel/debug/sched_features
+echo "NO_RT_RUNTIME_SHARE" > /sys/kernel/debug/sched_features
 
 # Enable Fast Charge for slightly faster battery charging when being connected to a USB 3.1 port, which can be good for the people that is often on the run or have limited access to a wall socket;
 echo "1" > /sys/kernel/fast_charge/force_fast_charge
@@ -216,8 +228,11 @@ echo "N" > /sys/module/hid_logitech_hidpp/parameters/disable_tap_to_click
 echo "N" > /sys/module/hid_magicmouse/parameters/emulate_3button
 echo "0" > /sys/module/hid_magicmouse/parameters/scroll_speed
 echo "N" > /sys/module/hid_magicmouse/parameters/emulate_scroll_wheel
+# echo "Y" > /sys/module/mdss_fb/parameters/backlight_dimmer
+# echo "200" > /sys/module/mdss_fb/parameters/backlight_max
 echo "N" > /sys/module/otg_wakelock/parameters/enabled
 echo "0" > /sys/module/service_locator/parameters/enable
+# echo "N" > /sys/module/sync/parameters/fsync_enabled
 
 # A miscellaneous pm_async tweak that increases the amount of time (in milliseconds) before user processes & kernel threads are being frozen & "put to sleep";
 echo "25000" > /sys/power/pm_freeze_timeout
@@ -236,10 +251,10 @@ export TZ=$(getprop persist.sys.timezone);
 echo $(date) > /storage/emulated/0/logs/blackenedmodlog
 if [ $? -eq 0 ]
 then
-  echo "02BlackenedMod successfully executed!" >> /storage/emulated/0/logs/blackenedmodlog
+  echo "02BlackenedMod v9.1 (Test Build #3) successfully executed!" >> /storage/emulated/0/logs/blackenedmodlog
   exit 0
 else
-  echo "02BlackenedMod failed." >> /storage/emulated/0/logs/blackenedmodlog
+  echo "02BlackenedMod v9.1 (Test Build #3) failed." >> /storage/emulated/0/logs/blackenedmodlog
   exit 1
 fi
   
