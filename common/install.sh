@@ -2,6 +2,11 @@
 
 #Install script for BlackenedMod
 
+#Remove old versions
+ui_print " "; ui_print "Removing old versions..."
+rm -r /data/adb/service.d/02BlackenedMod.sh
+rm -r /data/adb/service.d/Zipalign_sqlite.sh
+
 #Install sqlite binary and copy zipalign script
 ui_print " "; ui_print "Installing sqlite binary by ianmacd"
 local bindir=/system/bin
