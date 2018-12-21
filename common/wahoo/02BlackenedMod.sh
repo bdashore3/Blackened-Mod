@@ -1,7 +1,7 @@
 #!/system/bin/sh
 
 #
-# BlackenedMod v9.1 (Test Build #3) by the open source # loving BlackenedMod team over at XDA-developers;
+# BlackenedMod v9.1 (Test Build #5) by the open source # loving BlackenedMod team over at XDA-developers;
 # Various strictly selected, carefully optimized & adjusted       # tweaks for better day to day performance & battery life,
 # specially tuned for the Wahoo / Google Pixel 2 line-up;
 #
@@ -20,7 +20,7 @@ fi;
 # pm disable com.google.android.gms/com.google.android.gms.analytics.service.AnalyticsService;
 # pm disable com.google.android.gms/com.google.android.gms.analytics.AnalyticsService;
 # pm disable com.google.android.gms/com.google.android.gms.analytics.AnalyticsTaskService;
-# pm disable com.google.android.gms/com.google.android.gms.analytics.internal.PlayLogReportingService 
+# pm disable com.google.android.gms/com.google.android.gms.analytics.internal.PlayLogReportingService
 # pm disable com.google.android.gms/com.google.android.gms.analytics.AnalyticsReceiver;
 # pm disable com.google.android.gms/com.google.android.gms.mdm.services.RingService;
 # pm disable com.google.android.gms/com.google.android.gms.mdm.services.NetworkQualityAndroidService;
@@ -46,15 +46,18 @@ busybox mount -o remount,nosuid,nodev,noatime,nodiratime,barrier=0,noauto_da_all
 busybox mount -o remount,nodev,noatime,nodiratime,barrier=0,noauto_da_alloc,discard -t auto /system;
 
 # Use my own enhanced CPUSet configuration for gaining a massively improvement in performance, battery life & system responsivness, without any notable tradeoffs or regressions;
-echo "6-7" > /dev/cpuset/background/cpus
+echo "0-3" > /dev/cpuset/background/cpus
 echo "0-3" > /dev/cpuset/foreground/cpus
 echo "4-5" > /dev/cpuset/kernel/cpus
 echo "4-7" > /dev/cpuset/restricted/cpus
-echo "4-7" > /dev/cpuset/system-background/cpus
+echo "0-3" > /dev/cpuset/system-background/cpus
 echo "0-7" > /dev/cpuset/top-app/cpus
 
 # Enable schedtune foreground and gain a well deserved smoothness boost with one extra snap on top of it;
-echo "8" > /dev/stune/foreground/schedtune.boost
+echo "5" > /dev/stune/foreground/schedtune.boost
+
+# Disable exception-trace and reduce some overhead that is caused by a certain amount and percent of kernel logging, in case your kernel of choice have it enabled;
+echo "0" > /proc/sys/debug/exception-trace
 
 # FileSystem (FS) optimized tweaks & enhancements for a improved userspace experience;
 echo "0" > /proc/sys/fs/dir-notify-enable
@@ -70,9 +73,10 @@ echo "0" > /proc/sys/kernel/compat-log
 echo "0" > /proc/sys/kernel/panic
 echo "0" > /proc/sys/kernel/panic_on_oops
 echo "0" > /proc/sys/kernel/perf_cpu_time_max_percent
-echo "15000000" > /proc/sys/kernel/sched_latency_ns
-echo "2000000" > /proc/sys/kernel/sched_min_granularity_ns
-echo "10000000" > /proc/sys/kernel/sched_wakeup_granularity_ns
+echo "0" > /proc/sys/kernel/sched_child_runs_first
+echo "20000000" > /proc/sys/kernel/sched_latency_ns
+echo "1000000" > /proc/sys/kernel/sched_min_granularity_ns
+echo "2000000" > /proc/sys/kernel/sched_wakeup_granularity_ns
 
 # Increase how much CPU bandwidth (CPU time) realtime scheduling processes are given for slightly improved system stability and minimized chance of system freezes & lockups;
 echo "980000" > /proc/sys/kernel/sched_rt_runtime_us
@@ -160,34 +164,10 @@ echo "0" > /sys/class/kgsl/kgsl-3d0/throttling
 # Enable a tuned Boeffla wakelock blocker at boot for both better active & idle battery life;
 echo "wlan_pno_wl;wlan_ipa;wcnss_filter_lock;[timerfd];hal_bluetooth_lock;IPA_WS;sensor_ind;wlan;netmgr_wl;qcom_rx_wakelock;wlan_wow_wl;wlan_extscan_wl;" > /sys/class/misc/boeffla_wakelock_blocker/wakelock_blocker
 
-# Tweak and decrease tx_queue_len default stock value(s) for less amount of generated bufferbloat and for gaining slightly faster critically needed network speed and performance;
-echo "128" > /sys/class/net/bond0/tx_queue_len
-echo "128" > /sys/class/net/dummy0/tx_queue_len
-echo "128" > /sys/class/net/ip6_vti0/tx_queue_len
-echo "128" > /sys/class/net/ip6tnl0/tx_queue_len
-echo "128" > /sys/class/net/ip_vti0/tx_queue_len
-echo "128" > /sys/class/net/lo/tx_queue_len
-echo "128" > /sys/class/net/p2p0/tx_queue_len
-echo "128" > /sys/class/net/r_rmnet_data0/tx_queue_len
-echo "128" > /sys/class/net/r_rmnet_data1/tx_queue_len
-echo "128" > /sys/class/net/r_rmnet_data2/tx_queue_len
-echo "128" > /sys/class/net/r_rmnet_data3/tx_queue_len
-echo "128" > /sys/class/net/r_rmnet_data4/tx_queue_len
-echo "128" > /sys/class/net/r_rmnet_data5/tx_queue_len
-echo "128" > /sys/class/net/r_rmnet_data6/tx_queue_len
-echo "128" > /sys/class/net/r_rmnet_data7/tx_queue_len
-echo "128" > /sys/class/net/r_rmnet_data8/tx_queue_len
-echo "128" > /sys/class/net/rmnet_data0/tx_queue_len
-echo "128" > /sys/class/net/rmnet_data1/tx_queue_len
-echo "128" > /sys/class/net/rmnet_data2/tx_queue_len
-echo "128" > /sys/class/net/rmnet_data3/tx_queue_len
-echo "128" > /sys/class/net/rmnet_data4/tx_queue_len
-echo "128" > /sys/class/net/rmnet_data5/tx_queue_len
-echo "128" > /sys/class/net/rmnet_data6/tx_queue_len
-echo "128" > /sys/class/net/rmnet_data7/tx_queue_len
-echo "128" > /sys/class/net/rmnet_ipa0/tx_queue_len
-echo "128" > /sys/class/net/sit0/tx_queue_len
-echo "128" > /sys/class/net/wlan0/tx_queue_len
+# Tweak and decrease tx_queue_len default stock value(s) for less amount of generated bufferbloat and for gaining slightly faster network speed and performance;
+for i in $(find /sys/class/net -type l); do
+  echo 128 > $i/tx_queue_len;
+done;
 
 # Display Calibration that will be close to D65 (6500K) (Boosted). Thanks to Juzman @ XDA for this contribution;
 # echo "256 249 226" > /sys/devices/platform/kcal_ctrl.0/kcal
@@ -244,6 +224,7 @@ fstrim /system;
 
 # Push a semi-needed log to the internal storage with a "report" if the script could be executed or not;
 
+sleep 10;
 # Script log file location
 LOG_FILE=/storage/emulated/0/logs
 
@@ -251,13 +232,13 @@ export TZ=$(getprop persist.sys.timezone);
 echo $(date) > /storage/emulated/0/logs/blackenedmodlog
 if [ $? -eq 0 ]
 then
-  echo "02BlackenedMod v9.1 (Test Build #3) successfully executed!" >> /storage/emulated/0/logs/blackenedmodlog
+  echo "02BlackenedMod v9.1 (Test Build #5) successfully executed!" >> /storage/emulated/0/logs/blackenedmodlog
   exit 0
 else
-  echo "02BlackenedMod v9.1 (Test Build #3) failed." >> /storage/emulated/0/logs/blackenedmodlog
+  echo "02BlackenedMod v9.1 (Test Build #5) failed." >> /storage/emulated/0/logs/blackenedmodlog
   exit 1
 fi
-  
+
 # Wait..
 # Done!
 #

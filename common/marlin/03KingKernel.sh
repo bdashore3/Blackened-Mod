@@ -15,34 +15,15 @@ if [ -e /system/etc/sysctl.conf ]; then
   mount -o remount,ro /system;
 fi;
 
-# Add the full possibilty to either disable and / or enable a few Google Play Services background based services;
-# pm disable com.google.android.gms/com.google.android.gms.analytics.service.AnalyticsService;
-# pm disable com.google.android.gms/com.google.android.gms.analytics.AnalyticsService;
-# pm disable com.google.android.gms/com.google.android.gms.analytics.AnalyticsTaskService;
-# pm disable com.google.android.gms/com.google.android.gms.analytics.internal.PlayLogReportingService
-# pm disable com.google.android.gms/com.google.android.gms.analytics.AnalyticsReceiver;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.services.RingService;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.services.NetworkQualityAndroidService;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.services.MdmPhoneWearableListenerService;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.services.LockscreenMessageService;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.services.DeviceManagerApiService;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.services.GcmReceiverService;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.receivers.MdmDeviceAdminReceiver;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.receivers.RetryAfterAlarmReceiver;
-# pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinServiceImposeReceiver;
-# pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinServiceSecretCodeReceiver;
-# pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinServiceTriggerReceiver;
-# pm disable com.google.android.gms/com.google.android.gms.checkin.EventLogService;
-# pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinService;
-# pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinApiService;
-# pm disable com.google.android.gms/com.google.android.gms.clearcut.debug.ClearcutDebugDumpService
-
 # Mounting tweak for better overall partition performance (Need busybox magisk module);
 busybox mount -o remount,nosuid,nodev,noatime,nodiratime -t auto /;
 busybox mount -o remount,nosuid,nodev,noatime,nodiratime -t auto /proc;
 busybox mount -o remount,nosuid,nodev,noatime,nodiratime -t auto /sys;
 busybox mount -o remount,nosuid,nodev,noatime,nodiratime,barrier=0,noauto_da_alloc,discard -t auto /data;
 busybox mount -o remount,nodev,noatime,nodiratime,barrier=0,noauto_da_alloc,discard -t auto /system;
+
+echo "Y" > /sys/module/msm_thermal/parameters/enabled
+echo "1" > /sys/module/msm_thermal/core_control/enabled
 
 #xfirefly's cpuset profile to be applied when device is finished booting
 
@@ -55,57 +36,42 @@ echo "2-3" > /dev/cpuset/restricted/cpus
 echo "2-3" > /dev/cpuset/system-background/cpus
 echo "0-3" > /dev/cpuset/top-app/cpus
 
-if [ -e /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor/schedutil ]; then
-    #change default gov to schedutil (if present)
-    #cpu0
-    echo "schedutil" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-    #cpu1
-    echo "schedutil" > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor
-    #cpu2
-    echo "schedutil" > /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor
-    #cpu3
-    echo "schedutil" > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor
 
-    # Optimize and lower both the battery drain and overall power consumption that is caused by the Schedutil governor by biasing it to use slightly lower frequency steps, but do this without sacrificing performance or overall UI fluidity. See this as a balanced in-kernel power save mode, but without any notable traces of the "semi-typical" smoothness regressions; (If schedutil is present, else, sched tweaks will be applied)
+#change default gov to schedutil
+#cpu0
+echo "schedutil" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+#cpu1
+echo "schedutil" > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor
+#cpu2
+echo "schedutil" > /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor
+#cpu3
+echo "schedutil" > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor
 
-    # Cpu 0;
-    echo "18500" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/down_rate_limit_us
-    echo "775" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/up_rate_limit_us
+# Optimize and lower both the battery drain and overall power consumption that is caused by the Schedutil governor by biasing it to use slightly lower frequency steps, but do this without sacrificing performance or overall UI fluidity. See this as a balanced in-kernel power save mode, but without any notable traces of the "semi-typical" smoothness regressions;
 
-    # Cpu 1;
-    echo "18500" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/down_rate_limit_us
-    echo "775" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/up_rate_limit_us
+# Cpu 0;
+echo "18500" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/down_rate_limit_us
+echo "775" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/up_rate_limit_us
 
-    # Cpu 2;
-    echo "18500" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/down_rate_limit_us
-    echo "775" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/up_rate_limit_us
+# Cpu 1;
+echo "18500" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/down_rate_limit_us
+echo "775" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/up_rate_limit_us
 
-    # Cpu 3;
-    echo "18500" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/down_rate_limit_us
-    echo "775" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/up_rate_limit_us
+# Cpu 2;
+echo "18500" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/down_rate_limit_us
+echo "775" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/up_rate_limit_us
 
-else
-    # Optimize the battery consumption of the Sched governor by biasing it to use slightly lower frequency steps whenever possible. Just like a in-kernel powersaving mode, but without any trace of the typical "included" performance penalty; (if schedutil isn't present)
+# Cpu 3;
+echo "18500" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/down_rate_limit_us
+echo "775" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/up_rate_limit_us
 
-    # CPU0;
-    echo "85000000" > /sys/devices/system/cpu/cpu0/cpufreq/sched/down_throttle_nsec
-    echo "125000" > /sys/devices/system/cpu/cpu0/cpufreq/sched/up_throttle_nsec
-
-    # CPU1;
-    echo "85000000" > /sys/devices/system/cpu/cpu1/cpufreq/sched/down_throttle_nsec
-    echo "125000" > /sys/devices/system/cpu/cpu1/cpufreq/sched/up_throttle_nsec
-
-    # CPU2;
-    echo "85000000" > /sys/devices/system/cpu/cpu1/cpufreq/sched/down_throttle_nsec
-    echo "125000" > /sys/devices/system/cpu/cpu1/cpufreq/sched/up_throttle_nsec
-
-    # CPU3;
-    echo "85000000" > /sys/devices/system/cpu/cpu1/cpufreq/sched/down_throttle_nsec
-    echo "125000" > /sys/devices/system/cpu/cpu1/cpufreq/sched/up_throttle_nsec
-fi;
-
-# Enable schedtune foreground and gain a well deserved smoothness boost with one extra snap on top of it;
-echo "5" > /dev/stune/foreground/schedtune.boost
+#Default I/o sched cfq
+echo "cfq" > /sys/block/sda/queue/scheduler
+echo "cfq" > /sys/block/sdb/queue/scheduler
+echo "cfq" > /sys/block/sdc/queue/scheduler
+echo "cfq" > /sys/block/sdd/queue/scheduler
+echo "cfq" > /sys/block/sde/queue/scheduler
+echo "cfq" > /sys/block/sdf/queue/scheduler
 
 # Disable exception-trace and reduce some overhead that is caused by a certain amount and percent of kernel logging, in case your kernel of choice have it enabled;
 echo "0" > /proc/sys/debug/exception-trace
@@ -187,9 +153,6 @@ for i in $(find /sys/ -name snapshot_crashdumper); do
 echo "0" > $i;
 done
 
-# Disable gesture based vibration because it is honestly not even worth having enabled at all;
-echo "0" > /sys/android_touch/vib_strength
-
 # Wide block based tuning for reduced lag and less possible amount of general IO scheduling based overhead (Thanks to pkgnex @ XDA for the more than pretty much simplified version of this tweak. You really rock, dude!); #5
 for i in /sys/block/*/queue; do
   echo 0 > $i/add_random;
@@ -208,9 +171,6 @@ for i in $(find /sys/class/net -type l); do
   echo 128 > $i/tx_queue_len;
 done;
 
-# Enable Fast Charge for slightly faster battery charging when being connected to a USB 3.1 port, which can be good for the people that is often on the run or have limited access to a wall socket;
-echo "1" > /sys/kernel/fast_charge/force_fast_charge
-
 # Fully disable a very few CPU based & useless EDAC loggers;
 echo "0" > /sys/devices/system/edac/cpu/log_ce
 echo "0" > /sys/devices/system/edac/cpu/log_ue
@@ -219,6 +179,8 @@ echo "0" > /sys/devices/system/edac/cpu/log_ue
 echo "NO_GENTLE_FAIR_SLEEPERS" > /sys/kernel/debug/sched_features
 echo "NO_RT_RUNTIME_SHARE" > /sys/kernel/debug/sched_features
 
+# Enable Fast Charge for slightly faster battery charging when being connected to a USB 3.1 port, which can be good for the people that is often on the run or have limited access to a wall socket;
+echo "1" > /sys/kernel/fast_charge/force_fast_charge
 
 # A miscellaneous pm_async tweak that increases the amount of time (in milliseconds) before user processes & kernel threads are being frozen & "put to sleep";
 echo "25000" > /sys/power/pm_freeze_timeout
@@ -232,8 +194,8 @@ echo "0" > /sys/module/hid_apple/parameters/fnmode
 echo "N" > /sys/module/hid_magicmouse/parameters/emulate_3button
 echo "0" > /sys/module/hid_magicmouse/parameters/scroll_speed
 echo "N" > /sys/module/hid_magicmouse/parameters/emulate_scroll_wheel
-# echo "Y" > /sys/module/mdss_fb/parameters/backlight_dimmer
-# echo "200" > /sys/module/mdss_fb/parameters/backlight_max
+echo "Y" > /sys/module/mdss_fb/parameters/backlight_dimmer
+echo "200" > /sys/module/mdss_fb/parameters/backlight_max
 # echo "N" > /sys/module/sync/parameters/fsync_enabled
 
 #Enable audio high performance mode by default

@@ -1,2 +1,7 @@
 # This script will be executed in post-fs-data mode
 # More info in the main Magisk thread
+
+# Trim selected partitions at boot for a more than well-deserved and nice speed boost;
+fstrim /data;
+fstrim /cache;
+fstrim /system;
