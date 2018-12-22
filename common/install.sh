@@ -16,7 +16,7 @@ local xbindir=/system/xbin
 if [ ! -d /sbin/.core/mirror$xbindir ]; then
 	# Use /system/bin instead of /system/xbin.
 	mkdir -p $MODPATH$bindir
-    	mv $MODPATH$xbindir/sqlite3 $MODPATH$bindir
+    mv $MODPATH$xbindir/sqlite3 $MODPATH$bindir
 	rmdir $MODPATH$xbindir
 	xbindir=$bindir
 fi;
@@ -29,9 +29,10 @@ chmod 0755 /data/adb/service.d/Zipalign_sqlite.sh
 device="$(getprop ro.product.device)"
 if [ $device == "marlin" ] || [ $device == "sailfish" ] ; then
 	ui_print " "; ui_print "You are using Pixel(XL), removing wahoo files"
-    kernelver = "uname -a"
+    kernelver="uname -a"
+    target="-KingKernel"
     #check for KingKernel and install its boot tweaks
-    if [[ $kernelver == *"-KingKernel"* ]]; then
+    if [ "${kernelver/$target}" = "$kernelver" ] ; then
         ui_print " "; ui_print "You're using KingKernel, nice! Applying my modified version of BM..."
         cp -af $INSTALLER/common/marlin/03KingKernel.sh /data/adb/service.d
         chmod 0755 /data/adb/service.d/03KingKernel.sh
@@ -46,8 +47,8 @@ if [ $device == "marlin" ] || [ $device == "sailfish" ] ; then
     fi;
 elif [ $device == "walleye" ] || [ $device == "taimen" ] ; then
     ui_print "You are using Pixel 2(XL), removing OG pixel files"
-    kernelver = "uname -a"
-    if [[ $kernelver == *"-KingKernel"* ]]; then
+    kernelver="uname -a"
+    if [ "${kernelver/$target}" = "$kernelver" ] ; then
         ui_print " "; ui_print "You're using KingKernel, nice! Applying my modified version of BM..."
         cp -af $INSTALLER/common/marlin/03KingKernel.sh /data/adb/service.d
         chmod 0755 /data/adb/service.d/03KingKernel.sh
