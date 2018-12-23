@@ -32,37 +32,37 @@ if [ $device == "marlin" ] || [ $device == "sailfish" ] ; then
     kernelver=$(uname -a)
     #check for KingKernel and install its boot tweaks
 	case "$kernelver" in
-		*KingKernel*)
-			ui_print " "; ui_print "You're using KingKernel, nice! Applying my modified version of BM..."
-			cp -af $INSTALLER/common/marlin/03KingKernel.sh /data/adb/service.d
-			chmod 0755 /data/adb/service.d/03KingKernel.sh
-			rm -r $INSTALLER/common/marlin
-			rm -r $INSTALLER/common/wahoo
-			;;
-		*)
-			cp -af $INSTALLER/common/marlin/02BlackenedMod.sh /data/adb/service.d
-			chmod 0755 /data/adb/service.d/02BlackenedMod.sh
-			rm -r $INSTALLER/common/marlin
-			rm -r $INSTALLER/common/wahoo
-			;;
+	  *KingKernel*)
+		  ui_print " "; ui_print "You're using KingKernel, nice! Applying my modified version of BM..."
+		  cp -af $INSTALLER/common/marlin/03KingKernel.sh /data/adb/service.d
+		  chmod 0755 /data/adb/service.d/03KingKernel.sh
+		  rm -r $INSTALLER/common/marlin
+		  rm -r $INSTALLER/common/wahoo
+		  ;;
+      *)
+		  cp -af $INSTALLER/common/marlin/02BlackenedMod.sh /data/adb/service.d
+		  chmod 0755 /data/adb/service.d/02BlackenedMod.sh
+		  rm -r $INSTALLER/common/marlin
+		  rm -r $INSTALLER/common/wahoo
+		  ;;
 	esac
 elif [ $device == "walleye" ] || [ $device == "taimen" ] ; then
     ui_print "You are using Pixel 2(XL), removing OG pixel files"
     kernelver="uname -a"
 	case "$kernelver" in
-			*KingKernel*)
-				ui_print " "; ui_print "You're using KingKernel, nice! Applying my modified version of BM..."
-				cp -af $INSTALLER/common/wahoo/03KingKernel.sh /data/adb/service.d
-				chmod 0755 /data/adb/service.d/03KingKernel.sh
-				rm -r $INSTALLER/common/marlin
-				rm -r $INSTALLER/common/wahoo
-				;;
-			*)
-				cp -af $INSTALLER/common/wahoo/02BlackenedMod.sh /data/adb/service.d
-				chmod 0755 /data/adb/service.d/02BlackenedMod.sh
-				rm -r $INSTALLER/common/marlin
-				rm -r $INSTALLER/common/wahoo
-				;;
+	  *KingKernel*)
+		  ui_print " "; ui_print "You're using KingKernel, nice! Applying my modified version of BM..."
+		  cp -af $INSTALLER/common/wahoo/03KingKernel.sh /data/adb/service.d
+		  chmod 0755 /data/adb/service.d/03KingKernel.sh
+		  rm -r $INSTALLER/common/marlin
+		  rm -r $INSTALLER/common/wahoo
+		  ;;
+      *)
+		  cp -af $INSTALLER/common/wahoo/02BlackenedMod.sh /data/adb/service.d
+		  chmod 0755 /data/adb/service.d/02BlackenedMod.sh
+		  rm -r $INSTALLER/common/marlin
+		  rm -r $INSTALLER/common/wahoo
+		  ;;
 	esac
 else
 	ui_print "You are not on Pixel or Pixel 2! Aborting..."

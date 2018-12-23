@@ -16,26 +16,26 @@ if [ -e /system/etc/sysctl.conf ]; then
 fi;
 
 # Add the full possibilty to either disable and / or enable a few Google Play Services background based services;
-# pm disable com.google.android.gms/com.google.android.gms.analytics.service.AnalyticsService;
-# pm disable com.google.android.gms/com.google.android.gms.analytics.AnalyticsService;
-# pm disable com.google.android.gms/com.google.android.gms.analytics.AnalyticsTaskService;
-# pm disable com.google.android.gms/com.google.android.gms.analytics.internal.PlayLogReportingService
-# pm disable com.google.android.gms/com.google.android.gms.analytics.AnalyticsReceiver;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.services.RingService;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.services.NetworkQualityAndroidService;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.services.MdmPhoneWearableListenerService;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.services.LockscreenMessageService;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.services.DeviceManagerApiService;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.services.GcmReceiverService;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.receivers.MdmDeviceAdminReceiver;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.receivers.RetryAfterAlarmReceiver;
-# pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinServiceImposeReceiver;
-# pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinServiceSecretCodeReceiver;
-# pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinServiceTriggerReceiver;
-# pm disable com.google.android.gms/com.google.android.gms.checkin.EventLogService;
-# pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinService;
-# pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinApiService;
-# pm disable com.google.android.gms/com.google.android.gms.clearcut.debug.ClearcutDebugDumpService
+pm disable com.google.android.gms/com.google.android.gms.analytics.service.AnalyticsService;
+pm disable com.google.android.gms/com.google.android.gms.analytics.AnalyticsService;
+pm disable com.google.android.gms/com.google.android.gms.analytics.AnalyticsTaskService;
+pm disable com.google.android.gms/com.google.android.gms.analytics.internal.PlayLogReportingService 
+pm disable com.google.android.gms/com.google.android.gms.analytics.AnalyticsReceiver;
+pm disable com.google.android.gms/com.google.android.gms.mdm.services.RingService;
+pm disable com.google.android.gms/com.google.android.gms.mdm.services.NetworkQualityAndroidService;
+pm disable com.google.android.gms/com.google.android.gms.mdm.services.MdmPhoneWearableListenerService;
+pm disable com.google.android.gms/com.google.android.gms.mdm.services.LockscreenMessageService;
+pm disable com.google.android.gms/com.google.android.gms.mdm.services.DeviceManagerApiService;
+pm disable com.google.android.gms/com.google.android.gms.mdm.services.GcmReceiverService;
+pm disable com.google.android.gms/com.google.android.gms.mdm.receivers.MdmDeviceAdminReceiver;
+pm disable com.google.android.gms/com.google.android.gms.mdm.receivers.RetryAfterAlarmReceiver;
+pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinServiceImposeReceiver;
+pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinServiceSecretCodeReceiver;
+pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinServiceTriggerReceiver;
+pm disable com.google.android.gms/com.google.android.gms.checkin.EventLogService;
+pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinService;
+pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinApiService;
+pm disable com.google.android.gms/com.google.android.gms.clearcut.debug.ClearcutDebugDumpService
 
 # Mounting tweak for better overall partition performance (Need busybox magisk module);
 busybox mount -o remount,nosuid,nodev,noatime,nodiratime -t auto /;
