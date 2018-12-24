@@ -1,3 +1,11 @@
 # This file will be read by resetprop
 # Example: Change dpi
 # ro.sf.lcd_density=320
+
+#Enable power saving mode
+power.saving.mode=1
+ro.config.hw_power_saving=true
+persist.radio.add_power_save=1
+
+#Encoder power mode is low power
+vidc.debug.perf.mode=2

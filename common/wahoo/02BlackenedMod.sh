@@ -7,7 +7,7 @@
 #
 
 # Pause script execution a little for Magisk Boot Service;
-sleep 44;
+sleep 50;
 
 # Disable sysctl.conf to prevent ROM interference
 if [ -e /system/etc/sysctl.conf ]; then
@@ -15,28 +15,6 @@ if [ -e /system/etc/sysctl.conf ]; then
   mv /system/etc/sysctl.conf /system/etc/sysctl.conf.bak;
   mount -o remount,ro /system;
 fi;
-
-# Add the full possibilty to either disable and / or enable a few Google Play Services background based services;
-# pm disable com.google.android.gms/com.google.android.gms.analytics.service.AnalyticsService;
-# pm disable com.google.android.gms/com.google.android.gms.analytics.AnalyticsService;
-# pm disable com.google.android.gms/com.google.android.gms.analytics.AnalyticsTaskService;
-# pm disable com.google.android.gms/com.google.android.gms.analytics.internal.PlayLogReportingService
-# pm disable com.google.android.gms/com.google.android.gms.analytics.AnalyticsReceiver;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.services.RingService;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.services.NetworkQualityAndroidService;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.services.MdmPhoneWearableListenerService;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.services.LockscreenMessageService;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.services.DeviceManagerApiService;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.services.GcmReceiverService;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.receivers.MdmDeviceAdminReceiver;
-# pm disable com.google.android.gms/com.google.android.gms.mdm.receivers.RetryAfterAlarmReceiver;
-# pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinServiceImposeReceiver;
-# pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinServiceSecretCodeReceiver;
-# pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinServiceTriggerReceiver;
-# pm disable com.google.android.gms/com.google.android.gms.checkin.EventLogService;
-# pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinService;
-# pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinApiService;
-# pm disable com.google.android.gms/com.google.android.gms.clearcut.debug.ClearcutDebugDumpService
 
 # Mounting tweak for better overall partition performance;
 busybox mount -o remount,nosuid,nodev,noatime,nodiratime -t auto /;
@@ -73,10 +51,9 @@ echo "0" > /proc/sys/kernel/compat-log
 echo "0" > /proc/sys/kernel/panic
 echo "0" > /proc/sys/kernel/panic_on_oops
 echo "0" > /proc/sys/kernel/perf_cpu_time_max_percent
-echo "0" > /proc/sys/kernel/sched_child_runs_first
-echo "20000000" > /proc/sys/kernel/sched_latency_ns
-echo "1000000" > /proc/sys/kernel/sched_min_granularity_ns
-echo "2000000" > /proc/sys/kernel/sched_wakeup_granularity_ns
+echo "15000000" > /proc/sys/kernel/sched_latency_ns
+echo "2000000" > /proc/sys/kernel/sched_min_granularity_ns
+echo "10000000" > /proc/sys/kernel/sched_wakeup_granularity_ns
 
 # Increase how much CPU bandwidth (CPU time) realtime scheduling processes are given for slightly improved system stability and minimized chance of system freezes & lockups;
 echo "980000" > /proc/sys/kernel/sched_rt_runtime_us
@@ -91,6 +68,7 @@ echo "0" > /proc/sys/net/ipv4/igmp_link_local_mcast_reports
 echo "24" > /proc/sys/net/ipv4/ipfrag_time
 echo "westwood" > /proc/sys/net/ipv4/tcp_congestion_control
 echo "1" > /proc/sys/net/ipv4/tcp_ecn
+echo "0" > /proc/sys/net/ipv4/tcp_fwmark_accept
 echo "320" > /proc/sys/net/ipv4/tcp_keepalive_intvl
 echo "21600" > /proc/sys/net/ipv4/tcp_keepalive_time
 echo "1" > /proc/sys/net/ipv4/tcp_no_metrics_save
@@ -148,6 +126,16 @@ done
 # Disable gesture based vibration because it is honestly not even worth having enabled at all;
 echo "0" > /sys/android_touch/vib_strength
 
+# Enable CFQ group idle mode for improved scheduling effectivness by merging the IO queues in a "unified group" instead of treating them as individual IO based queues;
+for i in /sys/block/*/queue/iosched; do
+  echo 1 > $i/group_idle;
+done;
+
+# Disable CFQ low latency mode for overall increased IO based scheduling throughput and for better overall needed responsivness & performance from the system;
+for i in /sys/block/*/queue/iosched; do
+  echo 0 > $i/low_latency;
+done;
+
 # Wide block based tuning for reduced lag and less possible amount of general IO scheduling based overhead (Thanks to pkgnex @ XDA for the more than pretty much simplified version of this tweak. You really rock, dude!);
 for i in /sys/block/*/queue; do
   echo 0 > $i/add_random;
@@ -158,8 +146,22 @@ for i in /sys/block/*/queue; do
   echo 1 > $i/rq_affinity;
 done;
 
+# "Bruteforce" the GPU into a customized performance mode, but do it with respect to battery consumption and without causing any really notable thermal spikes;
+echo "0" > /sys/class/kgsl/kgsl-3d0/bus_split
+echo "1" > /sys/class/kgsl/kgsl-3d0/force_bus_on
+echo "1" > /sys/class/kgsl/kgsl-3d0/force_clk_on
+echo "1" > /sys/class/kgsl/kgsl-3d0/force_rail_on
+
 # Disable GPU frequency based throttling because it is actually not even needed anymore after all the GPU related enhancements and minor changes that I've done so far;
 echo "0" > /sys/class/kgsl/kgsl-3d0/throttling
+
+# Decrease both battery as well as power consumption that is being caused by the screen by lowering how much light the pixels, the built-in LED switches and the LCD backlight module is releasing & "kicking out" by carefully tuning / adjusting their maximum values a little bit to the balanced overall range of their respective spectrums;
+echo "170" > /sys/class/leds/blue/max_brightness
+echo "170" > /sys/class/leds/green/max_brightness
+echo "170" > /sys/class/leds/lcd-backlight/max_brightness
+echo "170" > /sys/class/leds/led:switch_0/max_brightness
+echo "170" > /sys/class/leds/led:switch_1/max_brightness
+echo "170" > /sys/class/leds/red/max_brightness
 
 # Enable a tuned Boeffla wakelock blocker at boot for both better active & idle battery life;
 echo "wlan_pno_wl;wlan_ipa;wcnss_filter_lock;[timerfd];hal_bluetooth_lock;IPA_WS;sensor_ind;wlan;netmgr_wl;qcom_rx_wakelock;wlan_wow_wl;wlan_extscan_wl;" > /sys/class/misc/boeffla_wakelock_blocker/wakelock_blocker
@@ -208,8 +210,8 @@ echo "N" > /sys/module/hid_logitech_hidpp/parameters/disable_tap_to_click
 echo "N" > /sys/module/hid_magicmouse/parameters/emulate_3button
 echo "0" > /sys/module/hid_magicmouse/parameters/scroll_speed
 echo "N" > /sys/module/hid_magicmouse/parameters/emulate_scroll_wheel
-# echo "Y" > /sys/module/mdss_fb/parameters/backlight_dimmer
-# echo "200" > /sys/module/mdss_fb/parameters/backlight_max
+echo "Y" > /sys/module/mdss_fb/parameters/backlight_dimmer
+echo "170" > /sys/module/mdss_fb/parameters/backlight_max
 echo "N" > /sys/module/otg_wakelock/parameters/enabled
 echo "0" > /sys/module/service_locator/parameters/enable
 # echo "N" > /sys/module/sync/parameters/fsync_enabled
@@ -224,22 +226,20 @@ fstrim /system;
 
 # Push a semi-needed log to the internal storage with a "report" if the script could be executed or not;
 
-sleep 10;
 # Script log file location
 LOG_FILE=/storage/emulated/0/logs
 
 export TZ=$(getprop persist.sys.timezone);
-echo $(date) > /storage/emulated/0/logs/blackenedmodlog
+echo $(date) > /storage/emulated/0/logs/blackenedmod.log
 if [ $? -eq 0 ]
 then
-  echo "02BlackenedMod v9.1 (Test Build #5) successfully executed!" >> /storage/emulated/0/logs/blackenedmodlog
+  echo "02BlackenedMod v9.1 (Christmas Edition) have been more than successfully executed. Enjoy!" >> /storage/emulated/0/logs/blackenedmod.log
   exit 0
 else
-  echo "02BlackenedMod v9.1 (Test Build #5) failed." >> /storage/emulated/0/logs/blackenedmodlog
+  echo "02BlackenedMod v9.1 (Christmas Edition) have for some unforeseen reasons failed, so lets try again and please, do it right this time!" >> /storage/emulated/0/logs/blackenedmod.log
   exit 1
 fi
-
+  
 # Wait..
 # Done!
 #
-

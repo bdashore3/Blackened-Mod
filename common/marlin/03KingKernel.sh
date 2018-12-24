@@ -6,7 +6,7 @@
 #make logs folder
 mkdir /storage/emulated/0/logs
 
-sleep 44;
+sleep 50;
 
 # Disable sysctl.conf to prevent ROM interference #1
 if [ -e /system/etc/sysctl.conf ]; then
@@ -72,48 +72,6 @@ echo "cfq" > /sys/block/sdd/queue/scheduler
 echo "cfq" > /sys/block/sde/queue/scheduler
 echo "cfq" > /sys/block/sdf/queue/scheduler
 
-# Add the full possibilty to either disable and / or enable a few Google Play Services background based services;
-sleep 0.1
-su -c "pm disable com.google.android.gms/com.google.android.gms.analytics.service.AnalyticsService"
-sleep 0.1
-su -c "pm disable com.google.android.gms/com.google.android.gms.analytics.AnalyticsService"
-sleep 0.1
-su -c "pm disable com.google.android.gms/com.google.android.gms.analytics.AnalyticsTaskService"
-sleep 0.1
-su -c "pm disable com.google.android.gms/com.google.android.gms.analytics.internal.PlayLogReportingService" 
-sleep 0.1
-su -c "pm disable com.google.android.gms/com.google.android.gms.analytics.AnalyticsReceiver"
-sleep 0.1
-su -c "pm disable com.google.android.gms/com.google.android.gms.mdm.services.RingService"
-sleep 0.1
-su -c "pm disable com.google.android.gms/com.google.android.gms.mdm.services.NetworkQualityAndroidService"
-sleep 0.1
-su -c "pm disable com.google.android.gms/com.google.android.gms.mdm.services.MdmPhoneWearableListenerService"
-sleep 0.1
-su -c "pm disable com.google.android.gms/com.google.android.gms.mdm.services.LockscreenMessageService"
-sleep 0.1
-su -c "pm disable com.google.android.gms/com.google.android.gms.mdm.services.DeviceManagerApiService"
-sleep 0.1
-su -c "pm disable com.google.android.gms/com.google.android.gms.mdm.services.GcmReceiverService"
-sleep 0.1
-su -c "pm disable com.google.android.gms/com.google.android.gms.mdm.receivers.MdmDeviceAdminReceiver"
-sleep 0.1
-su -c "pm disable com.google.android.gms/com.google.android.gms.mdm.receivers.RetryAfterAlarmReceiver"
-sleep 0.1
-su -c "pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinServiceImposeReceiver"
-sleep 0.1
-su -c "pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinServiceSecretCodeReceiver"
-sleep 0.1
-su -c "pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinServiceTriggerReceiver"
-sleep 0.1
-su -c "pm disable com.google.android.gms/com.google.android.gms.checkin.EventLogService"
-sleep 0.1
-su -c "pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinService"
-sleep 0.1
-su -c "pm disable com.google.android.gms/com.google.android.gms.checkin.CheckinApiService"
-sleep 0.1
-su -c "pm disable com.google.android.gms/com.google.android.gms.clearcut.debug.ClearcutDebugDumpService"
-
 # Disable exception-trace and reduce some overhead that is caused by a certain amount and percent of kernel logging, in case your kernel of choice have it enabled;
 echo "0" > /proc/sys/debug/exception-trace
 
@@ -138,14 +96,19 @@ echo "980000" > /proc/sys/kernel/sched_rt_runtime_us
 # Network tweaks for slightly reduced battery consumption when being "actively" connected to a network connection;
 echo "128" > /proc/sys/net/core/netdev_max_backlog
 echo "0" > /proc/sys/net/core/netdev_tstamp_prequeue
+echo "0" > /proc/sys/net/ipv4/cipso_cache_bucket_size
+echo "0" > /proc/sys/net/ipv4/cipso_cache_enable
+echo "0" > /proc/sys/net/ipv4/cipso_rbm_strictvalid
+echo "0" > /proc/sys/net/ipv4/igmp_link_local_mcast_reports
 echo "24" > /proc/sys/net/ipv4/ipfrag_time
 echo "westwood" > /proc/sys/net/ipv4/tcp_congestion_control
 echo "1" > /proc/sys/net/ipv4/tcp_ecn
+echo "0" > /proc/sys/net/ipv4/tcp_fwmark_accept
 echo "320" > /proc/sys/net/ipv4/tcp_keepalive_intvl
 echo "21600" > /proc/sys/net/ipv4/tcp_keepalive_time
 echo "1" > /proc/sys/net/ipv4/tcp_no_metrics_save
+echo "1500" > /proc/sys/net/ipv4/tcp_probe_interval
 echo "48" > /proc/sys/net/ipv6/ip6frag_time
-
 
 # Virtual Memory tweaks & enhancements for a massively improved balance between performance and battery life;
 echo "0" > /proc/sys/vm/compact_unevictable_allowed
@@ -194,6 +157,19 @@ for i in $(find /sys/ -name snapshot_crashdumper); do
 echo "0" > $i;
 done
 
+# Disable gesture based vibration because it is honestly not even worth having enabled at all;
+echo "0" > /sys/android_touch/vib_strength
+
+# Enable CFQ group idle mode for improved scheduling effectivness by merging the IO queues in a "unified group" instead of treating them as individual IO based queues;
+for i in /sys/block/*/queue/iosched; do
+  echo 1 > $i/group_idle;
+done;
+
+# Disable CFQ low latency mode for overall increased IO based scheduling throughput and for better overall needed responsivness & performance from the system;
+for i in /sys/block/*/queue/iosched; do
+  echo 0 > $i/low_latency;
+done;
+
 # Wide block based tuning for reduced lag and less possible amount of general IO scheduling based overhead (Thanks to pkgnex @ XDA for the more than pretty much simplified version of this tweak. You really rock, dude!); #5
 for i in /sys/block/*/queue; do
   echo 0 > $i/add_random;
@@ -203,6 +179,20 @@ for i in /sys/block/*/queue; do
   echo 0 > $i/rotational;
   echo 1 > $i/rq_affinity;
 done;
+
+# "Bruteforce" the GPU into a customized performance mode, but do it with respect to battery consumption and without causing any really notable thermal spikes;
+echo "0" > /sys/class/kgsl/kgsl-3d0/bus_split
+echo "1" > /sys/class/kgsl/kgsl-3d0/force_bus_on
+echo "1" > /sys/class/kgsl/kgsl-3d0/force_clk_on
+echo "1" > /sys/class/kgsl/kgsl-3d0/force_rail_on
+
+# Decrease both battery as well as power consumption that is being caused by the screen by lowering how much light the pixels, the built-in LED switches and the LCD backlight module is releasing & "kicking out" by carefully tuning / adjusting their maximum values a little bit to the balanced overall range of their respective spectrums;
+echo "170" > /sys/class/leds/blue/max_brightness
+echo "170" > /sys/class/leds/green/max_brightness
+echo "170" > /sys/class/leds/lcd-backlight/max_brightness
+echo "170" > /sys/class/leds/led:switch_0/max_brightness
+echo "170" > /sys/class/leds/led:switch_1/max_brightness
+echo "170" > /sys/class/leds/red/max_brightness
 
 # Enable a tuned Boeffla wakelock blocker at boot for both better active & idle battery life;
 echo "wlan_pno_wl;wlan_ipa;wcnss_filter_lock;[timerfd];hal_bluetooth_lock;IPA_WS;sensor_ind;wlan;netmgr_wl;qcom_rx_wakelock;wlan_wow_wl;wlan_extscan_wl;" > /sys/class/misc/boeffla_wakelock_blocker/wakelock_blocker
@@ -223,21 +213,27 @@ echo "NO_RT_RUNTIME_SHARE" > /sys/kernel/debug/sched_features
 # Enable Fast Charge for slightly faster battery charging when being connected to a USB 3.1 port, which can be good for the people that is often on the run or have limited access to a wall socket;
 echo "1" > /sys/kernel/fast_charge/force_fast_charge
 
-# A miscellaneous pm_async tweak that increases the amount of time (in milliseconds) before user processes & kernel threads are being frozen & "put to sleep";
-echo "25000" > /sys/power/pm_freeze_timeout
-
 # Turn off a few additional kernel debuggers and what not for gaining a slight boost in both performance and battery life;
 echo "Y" > /sys/module/bluetooth/parameters/disable_ertm
 echo "Y" > /sys/module/bluetooth/parameters/disable_esco
+echo "N" > /sys/module/cpufreq/parameters/enable_underclock
 echo "0" > /sys/module/dwc3/parameters/ep_addr_rxdbg_mask
 echo "0" > /sys/module/dwc3/parameters/ep_addr_txdbg_mask
+echo "0" > /sys/module/diagchar/parameters/diag_mask_clear_param
 echo "0" > /sys/module/hid_apple/parameters/fnmode
+echo "N" > /sys/module/hid_logitech_hidpp/parameters/disable_raw_mode
+echo "N" > /sys/module/hid_logitech_hidpp/parameters/disable_tap_to_click
 echo "N" > /sys/module/hid_magicmouse/parameters/emulate_3button
 echo "0" > /sys/module/hid_magicmouse/parameters/scroll_speed
 echo "N" > /sys/module/hid_magicmouse/parameters/emulate_scroll_wheel
 echo "Y" > /sys/module/mdss_fb/parameters/backlight_dimmer
-echo "200" > /sys/module/mdss_fb/parameters/backlight_max
+echo "170" > /sys/module/mdss_fb/parameters/backlight_max
+echo "N" > /sys/module/otg_wakelock/parameters/enabled
+echo "0" > /sys/module/service_locator/parameters/enable
 # echo "N" > /sys/module/sync/parameters/fsync_enabled
+
+# A miscellaneous pm_async tweak that increases the amount of time (in milliseconds) before user processes & kernel threads are being frozen & "put to sleep";
+echo "25000" > /sys/power/pm_freeze_timeout
 
 #Enable audio high performance mode by default
 echo "1" > /sys/module/snd_soc_wcd9330/parameters/high_perf_mode
@@ -247,7 +243,7 @@ fstrim /data;
 fstrim /cache;
 fstrim /system;
 
-sleep 10;
+sleep 5;
 # Script log file location
 LOG_FILE=/storage/emulated/0/logs
 
