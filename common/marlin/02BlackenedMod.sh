@@ -6,6 +6,15 @@
 #make logs folder
 mkdir /storage/emulated/0/logs
 
+# A customized CPUSet profile for the first generation of Pixels (By xfirefly93) - with the goal of increasing both battery life, system responsivness and overall daily needed performance without any notable regressions, possible sacrifices and tradeoffs;
+echo "3" > /dev/cpuset/background/cpus
+echo "1,3" > /dev/cpuset/camera-daemon/cpus
+echo "0-1" > /dev/cpuset/foreground/cpus
+echo "2" > /dev/cpuset/kernel/cpus
+echo "2-3" > /dev/cpuset/restricted/cpus
+echo "2-3" > /dev/cpuset/system-background/cpus
+echo "0-3" > /dev/cpuset/top-app/cpus
+
 sleep 50;
 
 # Disable sysctl.conf to prevent ROM interference #1
@@ -22,17 +31,6 @@ busybox mount -o remount,nosuid,nodev,noatime,nodiratime -t auto /sys;
 busybox mount -o remount,nosuid,nodev,noatime,nodiratime,barrier=0,noauto_da_alloc,discard -t auto /data;
 busybox mount -o remount,nodev,noatime,nodiratime,barrier=0,noauto_da_alloc,discard -t auto /system;
 
-#xfirefly's cpuset profile to be applied when device is finished booting
-
-# A customized CPUSet profile for the first generation of Pixels (By xfirefly93) - with the goal of increasing both battery life, system responsivness and overall daily needed performance without any notable regressions, possible sacrifices and tradeoffs;
-echo "3" > /dev/cpuset/background/cpus
-echo "1,3" > /dev/cpuset/camera-daemon/cpus
-echo "0-1" > /dev/cpuset/foreground/cpus
-echo "2" > /dev/cpuset/kernel/cpus
-echo "2-3" > /dev/cpuset/restricted/cpus
-echo "2-3" > /dev/cpuset/system-background/cpus
-echo "0-3" > /dev/cpuset/top-app/cpus
-
 #change default gov to schedutil (if present)
 #cpu0
 echo "schedutil" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
@@ -44,7 +42,7 @@ echo "schedutil" > /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor
 echo "schedutil" > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor
 
 sleep 3;
-if [ -e /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor/schedutil ]; then
+if [ -d /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor/schedutil ]; then
 
     # Optimize and lower both the battery drain and overall power consumption that is caused by the Schedutil governor by biasing it to use slightly lower frequency steps, but do this without sacrificing performance or overall UI fluidity. See this as a balanced in-kernel power save mode, but without any notable traces of the "semi-typical" smoothness regressions; (If schedutil is present, else, sched tweaks will be applied)
 

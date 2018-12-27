@@ -6,6 +6,14 @@
 # specially tuned for the Wahoo / Google Pixel 2 line-up;
 #
 
+# Use my own enhanced CPUSet configuration for gaining a massively improvement in performance, battery life & system responsivness, without any notable tradeoffs or regressions;
+echo "0-3" > /dev/cpuset/background/cpus
+echo "0-3" > /dev/cpuset/foreground/cpus
+echo "4-5" > /dev/cpuset/kernel/cpus
+echo "4-7" > /dev/cpuset/restricted/cpus
+echo "0-3" > /dev/cpuset/system-background/cpus
+echo "0-7" > /dev/cpuset/top-app/cpus
+
 # Pause script execution a little for Magisk Boot Service;
 sleep 50;
 
@@ -22,14 +30,6 @@ busybox mount -o remount,nosuid,nodev,noatime,nodiratime -t auto /proc;
 busybox mount -o remount,nosuid,nodev,noatime,nodiratime -t auto /sys;
 busybox mount -o remount,nosuid,nodev,noatime,nodiratime,barrier=0,noauto_da_alloc,discard -t auto /data;
 busybox mount -o remount,nodev,noatime,nodiratime,barrier=0,noauto_da_alloc,discard -t auto /system;
-
-# Use my own enhanced CPUSet configuration for gaining a massively improvement in performance, battery life & system responsivness, without any notable tradeoffs or regressions;
-echo "0-3" > /dev/cpuset/background/cpus
-echo "0-3" > /dev/cpuset/foreground/cpus
-echo "4-5" > /dev/cpuset/kernel/cpus
-echo "4-7" > /dev/cpuset/restricted/cpus
-echo "0-3" > /dev/cpuset/system-background/cpus
-echo "0-7" > /dev/cpuset/top-app/cpus
 
 # Enable schedtune foreground and gain a well deserved smoothness boost with one extra snap on top of it;
 echo "5" > /dev/stune/foreground/schedtune.boost

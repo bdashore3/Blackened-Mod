@@ -6,6 +6,7 @@
 ui_print " "; ui_print "Removing old versions..."
 rm -r /data/adb/service.d/02BlackenedMod.sh
 rm -r /data/adb/service.d/Zipalign_sqlite.sh
+rm -r /data/adb/service.d/03KingKernel.sh
 
 #Install sqlite binary and copy zipalign script
 ui_print " "; ui_print "Installing sqlite binary by ianmacd"
@@ -34,8 +35,10 @@ if [ $device == "marlin" ] || [ $device == "sailfish" ] ; then
 	case "$kernelver" in
 	  *KingKernel*)
 		  ui_print " "; ui_print "You're using KingKernel, nice! Applying my modified version of BM..."
+		  cp -af $INSTALLER/common/marlin/cooler.sh /data
 		  cp -af $INSTALLER/common/marlin/03KingKernel.sh /data/adb/service.d
 		  chmod 0755 /data/adb/service.d/03KingKernel.sh
+		  chmod 0755 /data/cooler.sh
 		  rm -r $INSTALLER/common/marlin
 		  rm -r $INSTALLER/common/wahoo
 		  ;;
@@ -48,7 +51,7 @@ if [ $device == "marlin" ] || [ $device == "sailfish" ] ; then
 	esac
 elif [ $device == "walleye" ] || [ $device == "taimen" ] ; then
     ui_print "You are using Pixel 2(XL), removing OG pixel files"
-    kernelver="uname -a"
+    kernelver=$(uname -a)
 	case "$kernelver" in
 	  *KingKernel*)
 		  ui_print " "; ui_print "You're using KingKernel, nice! Applying my modified version of BM..."
