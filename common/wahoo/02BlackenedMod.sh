@@ -1,21 +1,19 @@
 #!/system/bin/sh
 
 #
-# BlackenedMod v9.1 (Test Build #5) by the open source # loving BlackenedMod team over at XDA-developers;
+# BlackenedMod v9.3 (Test Build #4) by the
+# open source loving BlackenedMod team @ XDA;
 # Various strictly selected, carefully optimized & adjusted       # tweaks for better day to day performance & battery life,
 # specially tuned for the Wahoo / Google Pixel 2 line-up;
 #
 
-# Use my own enhanced CPUSet configuration for gaining a massively improvement in performance, battery life & system responsivness, without any notable tradeoffs or regressions;
-echo "0-3" > /dev/cpuset/background/cpus
-echo "0-3" > /dev/cpuset/foreground/cpus
-echo "4-5" > /dev/cpuset/kernel/cpus
-echo "4-7" > /dev/cpuset/restricted/cpus
-echo "0-3" > /dev/cpuset/system-background/cpus
-echo "0-7" > /dev/cpuset/top-app/cpus
-
 # Pause script execution a little for Magisk Boot Service;
-sleep 50;
+sleep 60;
+
+# Script log file location
+LOG_FILE=/storage/emulated/0/logs/blackenedmod.log
+
+echo "BM started" > $LOG_FILE;
 
 # Disable sysctl.conf to prevent ROM interference
 if [ -e /system/etc/sysctl.conf ]; then
@@ -30,6 +28,14 @@ busybox mount -o remount,nosuid,nodev,noatime,nodiratime -t auto /proc;
 busybox mount -o remount,nosuid,nodev,noatime,nodiratime -t auto /sys;
 busybox mount -o remount,nosuid,nodev,noatime,nodiratime,barrier=0,noauto_da_alloc,discard -t auto /data;
 busybox mount -o remount,nodev,noatime,nodiratime,barrier=0,noauto_da_alloc,discard -t auto /system;
+
+# Use my own enhanced CPUSet configuration for gaining a massively improvement in performance, battery life & system responsivness, without any notable tradeoffs or regressions;
+echo "0-3" > /dev/cpuset/background/cpus
+echo "0-3" > /dev/cpuset/foreground/cpus
+echo "4-5" > /dev/cpuset/kernel/cpus
+echo "4-7" > /dev/cpuset/restricted/cpus
+echo "0-3" > /dev/cpuset/system-background/cpus
+echo "0-7" > /dev/cpuset/top-app/cpus
 
 # Enable schedtune foreground and gain a well deserved smoothness boost with one extra snap on top of it;
 echo "5" > /dev/stune/foreground/schedtune.boost
@@ -73,6 +79,7 @@ echo "320" > /proc/sys/net/ipv4/tcp_keepalive_intvl
 echo "21600" > /proc/sys/net/ipv4/tcp_keepalive_time
 echo "1" > /proc/sys/net/ipv4/tcp_no_metrics_save
 echo "1500" > /proc/sys/net/ipv4/tcp_probe_interval
+echo "0" > /proc/sys/net/ipv4/tcp_slow_start_after_idle
 echo "48" > /proc/sys/net/ipv6/ip6frag_time
 
 # Virtual Memory tweaks & enhancements for a massively improved balance between performance and battery life;
@@ -128,29 +135,44 @@ echo "0" > /sys/android_touch/vib_strength
 
 # Enable CFQ group idle mode for improved scheduling effectivness by merging the IO queues in a "unified group" instead of treating them as individual IO based queues;
 for i in /sys/block/*/queue/iosched; do
-  echo 1 > $i/group_idle;
+  echo "1" > $i/group_idle;
 done;
 
 # Disable CFQ low latency mode for overall increased IO based scheduling throughput and for better overall needed responsivness & performance from the system;
 for i in /sys/block/*/queue/iosched; do
-  echo 0 > $i/low_latency;
+  echo "0" > $i/low_latency;
 done;
 
 # Wide block based tuning for reduced lag and less possible amount of general IO scheduling based overhead (Thanks to pkgnex @ XDA for the more than pretty much simplified version of this tweak. You really rock, dude!);
 for i in /sys/block/*/queue; do
-  echo 0 > $i/add_random;
-  echo 0 > $i/iostats;
-  echo 0 > $i/nomerges;
-  echo 128 > $i/read_ahead_kb;
-  echo 0 > $i/rotational;
-  echo 1 > $i/rq_affinity;
+  echo "0" > $i/add_random;
+  echo "0" > $i/discard_max_bytes;
+  echo "0" > $i/iostats;
+  echo "0" > $i/nomerges;
+  echo "128" > $i/read_ahead_kb;
+  echo "0" > $i/rotational;
+  echo "1" > $i/rq_affinity;
 done;
 
-# "Bruteforce" the GPU into a customized performance mode, but do it with respect to battery consumption and without causing any really notable thermal spikes;
+# Shift to instead use the simple_ondemand GPU governor for gaining a overall better peak balance between battery life and performance for daily usage;
+echo "simple_ondemand" > /sys/class/devfreq/5000000.qcom,kgsl-3d0/governor
+
+# Underclock and strictly cap the maximum allowed GPU frequency just a little with a few steps for overall power consumption and thermal pressure based reasons;
+echo "515000000" > /sys/class/devfreq/5000000.qcom,kgsl-3d0/max_freq
+
+# See my note above regarding the max GPU freq cap;
+echo "515000000" > /sys/class/devfreq/soc:qcom,kgsl-busmon/max_freq
+
+# Optimize the Adreno 540 GPU into delivering better overall graphical rendering performance, but do it with "respect" to battery life as well as power consumption as far as possible with less amount of possible tradeoffs;
 echo "0" > /sys/class/kgsl/kgsl-3d0/bus_split
 echo "1" > /sys/class/kgsl/kgsl-3d0/force_bus_on
 echo "1" > /sys/class/kgsl/kgsl-3d0/force_clk_on
+echo "0" > /sys/class/kgsl/kgsl-3d0/force_no_nap
 echo "1" > /sys/class/kgsl/kgsl-3d0/force_rail_on
+
+# See my previous notes regarding the limitation & capping of the maximal allowed GPU frequency;
+echo "515" > /sys/class/kgsl/kgsl-3d0/max_clock_mhz
+echo "515000000" > /sys/class/kgsl/kgsl-3d0/max_gpuclk
 
 # Disable GPU frequency based throttling because it is actually not even needed anymore after all the GPU related enhancements and minor changes that I've done so far;
 echo "0" > /sys/class/kgsl/kgsl-3d0/throttling
@@ -168,7 +190,7 @@ echo "wlan_pno_wl;wlan_ipa;wcnss_filter_lock;[timerfd];hal_bluetooth_lock;IPA_WS
 
 # Tweak and decrease tx_queue_len default stock value(s) for less amount of generated bufferbloat and for gaining slightly faster network speed and performance;
 for i in $(find /sys/class/net -type l); do
-  echo 128 > $i/tx_queue_len;
+  echo "128" > $i/tx_queue_len;
 done;
 
 # Display Calibration that will be close to D65 (6500K) (Boosted). Thanks to Juzman @ XDA for this contribution;
@@ -180,27 +202,44 @@ done;
 
 # Little Cluster;
 echo "18500" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/down_rate_limit_us
+# echo "1" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/iowait_boost_enable
 echo "775" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/up_rate_limit_us
 
 # BIG Cluster;
 echo "18500" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/down_rate_limit_us
+# echo "1" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/iowait_boost_enable
 echo "775" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/up_rate_limit_us
 
-# Fully disable a very few CPU based & useless EDAC loggers;
+# Fully disable a very few CPU based & useless EDAC tunable loggers for overall slightly reduced CPU overhead;
 echo "0" > /sys/devices/system/edac/cpu/log_ce
 echo "0" > /sys/devices/system/edac/cpu/log_ue
+echo "0" > /sys/devices/system/edac/cpu/panic_on_ue
 
 # Tweak the kernel task scheduler for improved overall system performance and user interface responsivness during all kind of possible workload based scenarios;
 echo "NO_GENTLE_FAIR_SLEEPERS" > /sys/kernel/debug/sched_features
+echo "NO_TTWU_QUEUE" > /sys/kernel/debug/sched_features
 echo "NO_RT_RUNTIME_SHARE" > /sys/kernel/debug/sched_features
 
 # Enable Fast Charge for slightly faster battery charging when being connected to a USB 3.1 port, which can be good for the people that is often on the run or have limited access to a wall socket;
 echo "1" > /sys/kernel/fast_charge/force_fast_charge
 
+# See my note a few steps higher regarding the change from stock to the simple_ondemand GPU governor;
+echo "simple_ondemand" > /sys/kernel/gpu/gpu_governor
+
+# See my previous notes (again) regarding the limitation & capping of the maximal allowed GPU frequency;
+echo "515" > /sys/kernel/gpu/gpu_max_clock
+
 # Turn off a few additional kernel debuggers and what not for gaining a slight boost in both performance and battery life;
 echo "Y" > /sys/module/bluetooth/parameters/disable_ertm
 echo "Y" > /sys/module/bluetooth/parameters/disable_esco
-echo "N" > /sys/module/cpufreq/parameters/enable_underclock
+
+# Slightly tweak Sultans custom CPU input boosting driver into delivering even more UI smoothness as well as overall system responsivness whenever it is possible;
+echo "133" > /sys/module/cpu_input_boost/parameters/input_boost_duration
+echo "422400" > /sys/module/cpu_input_boost/parameters/input_boost_freq_hp
+echo "825600" > /sys/module/cpu_input_boost/parameters/input_boost_freq_lp
+
+# Turn off even more additional useless kernel debuggers, masks and modules that is not really needed & used at all;
+# echo "Y" > /sys/module/cpufreq/parameters/enable_underclock
 echo "0" > /sys/module/dwc3/parameters/ep_addr_rxdbg_mask
 echo "0" > /sys/module/dwc3/parameters/ep_addr_txdbg_mask
 echo "0" > /sys/module/diagchar/parameters/diag_mask_clear_param
@@ -224,22 +263,21 @@ fstrim /data;
 fstrim /cache;
 fstrim /system;
 
-# Push a semi-needed log to the internal storage with a "report" if the script could be executed or not;
-
+sleep 5;
 # Script log file location
-LOG_FILE=/storage/emulated/0/logs
 
 export TZ=$(getprop persist.sys.timezone);
-echo $(date) > /storage/emulated/0/logs/blackenedmod.log
+echo $(date) | tee -a $LOG_FILE
 if [ $? -eq 0 ]
 then
-  echo "02BlackenedMod v9.1 (Christmas Edition) have been more than successfully executed. Enjoy!" >> /storage/emulated/0/logs/blackenedmod.log
+  echo "---------------------------------------------" | tee -a $LOG_FILE
+  echo "02BlackenedMod v9.2 successfully executed!" | tee -a $LOG_FILE;
   exit 0
 else
-  echo "02BlackenedMod v9.1 (Christmas Edition) have for some unforeseen reasons failed, so lets try again and please, do it right this time!" >> /storage/emulated/0/logs/blackenedmod.log
+  echo "---------------------------------------------" | tee -a $LOG_FILE
+  echo "02BlackenedMod v9.2 failed, please check your installation." | tee -a $LOG_FILE;
   exit 1
 fi
-  
 # Wait..
 # Done!
 #

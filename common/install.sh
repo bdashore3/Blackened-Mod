@@ -35,10 +35,8 @@ if [ $device == "marlin" ] || [ $device == "sailfish" ] ; then
 	case "$kernelver" in
 	  *KingKernel*)
 		  ui_print " "; ui_print "You're using KingKernel, nice! Applying my modified version of BM..."
-		  cp -af $INSTALLER/common/marlin/cooler.sh /data
 		  cp -af $INSTALLER/common/marlin/03KingKernel.sh /data/adb/service.d
 		  chmod 0755 /data/adb/service.d/03KingKernel.sh
-		  chmod 0755 /data/cooler.sh
 		  rm -r $INSTALLER/common/marlin
 		  rm -r $INSTALLER/common/wahoo
 		  ;;

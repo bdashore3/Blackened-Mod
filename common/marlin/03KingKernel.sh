@@ -7,7 +7,14 @@
 mkdir /storage/emulated/0/logs
 LOG_FILE=/storage/emulated/0/logs/blackenedmodlog
 
+echo " " > $LOG_FILE;
 echo "BM started" | tee -a $LOG_FILE;
+
+#Immediate executions for boot
+
+#Enable msm_thermal and core_control because of the improved thermals
+echo "Y" > /sys/module/msm_thermal/parameters/enabled
+echo "1" > /sys/module/msm_thermal/core_control/enabled
 
 # A customized CPUSet profile for the first generation of Pixels (By xfirefly93) - with the goal of increasing both battery life, system responsivness and overall daily needed performance without any notable regressions, possible sacrifices and tradeoffs;
 echo "3" > /dev/cpuset/background/cpus
@@ -17,6 +24,37 @@ echo "2" > /dev/cpuset/kernel/cpus
 echo "2-3" > /dev/cpuset/restricted/cpus
 echo "2-3" > /dev/cpuset/system-background/cpus
 echo "0-3" > /dev/cpuset/top-app/cpus
+
+#Immediately Change default to schedutil if present #3
+#cpu0
+echo "schedutil" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+#cpu1
+echo "schedutil" > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor
+#cpu2
+echo "schedutil" > /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor
+#cpu3
+echo "schedutil" > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor
+
+# Optimize and lower both the battery drain and overall power consumption that is caused by the Schedutil governor by biasing it to use slightly lower frequency steps, but do this without sacrificing performance or overall UI fluidity. See this as a balanced in-kernel power save mode, but without any notable traces of the "semi-typical" smoothness regressions;
+
+echo "850" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/down_rate_limit_us
+echo "1" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/iowait_boost_enable
+echo "1275" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/up_rate_limit_us
+
+#cpu1
+echo "850" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/down_rate_limit_us
+echo "1" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/iowait_boost_enable
+echo "1275" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/up_rate_limit_us
+
+#cpu2
+echo "850" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/down_rate_limit_us
+echo "1" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/iowait_boost_enable
+echo "1275" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/up_rate_limit_us
+
+#cpu3
+echo "850" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/down_rate_limit_us
+echo "1" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/iowait_boost_enable
+echo "1275" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/up_rate_limit_us
 
 sleep 30;
 
@@ -33,9 +71,6 @@ busybox mount -o remount,nosuid,nodev,noatime,nodiratime -t auto /proc;
 busybox mount -o remount,nosuid,nodev,noatime,nodiratime -t auto /sys;
 busybox mount -o remount,nosuid,nodev,noatime,nodiratime,barrier=0,noauto_da_alloc,discard -t auto /data;
 busybox mount -o remount,nodev,noatime,nodiratime,barrier=0,noauto_da_alloc,discard -t auto /system;
-
-echo "Y" > /sys/module/msm_thermal/parameters/enabled
-echo "1" > /sys/module/msm_thermal/core_control/enabled
 
 #Default I/o sched cfq
 echo "cfq" > /sys/block/sda/queue/scheduler
@@ -76,6 +111,7 @@ echo "0" > /proc/sys/net/ipv4/tcp_fwmark_accept
 echo "320" > /proc/sys/net/ipv4/tcp_keepalive_intvl
 echo "21600" > /proc/sys/net/ipv4/tcp_keepalive_time
 echo "1" > /proc/sys/net/ipv4/tcp_no_metrics_save
+echo "0" > /proc/sys/net/ipv4/tcp_slow_start_after_idle
 echo "48" > /proc/sys/net/ipv6/ip6frag_time
 
 # Virtual Memory tweaks & enhancements for a massively improved balance between performance and battery life;
@@ -126,13 +162,16 @@ done
 
 # Enable CFQ group idle mode for improved scheduling effectivness by merging the IO queues in a "unified group" instead of treating them as individual IO based queues;
 for i in /sys/block/*/queue/iosched; do
-  echo 1 > $i/group_idle;
+  echo "1" > $i/group_idle;
 done;
 
 # Disable CFQ low latency mode for overall increased IO based scheduling throughput and for better overall needed responsivness & performance from the system;
 for i in /sys/block/*/queue/iosched; do
-  echo 0 > $i/low_latency;
+  echo "0" > $i/low_latency;
 done;
+
+# Disable gesture based vibration because it is honestly not even worth having enabled at all;
+echo "0" > /sys/android_touch/vib_strength
 
 # Wide block based tuning for reduced lag and less possible amount of general IO scheduling based overhead (Thanks to pkgnex @ XDA for the more than pretty much simplified version of this tweak. You really rock, dude!); #5
 for i in /sys/block/*/queue; do
@@ -145,11 +184,12 @@ for i in /sys/block/*/queue; do
   echo "1" > $i/rq_affinity;
 done;
 
-# "Bruteforce" the GPU into a customized performance mode, but do it with respect to battery consumption and without causing any really notable thermal spikes;
-echo "0" > /sys/class/kgsl/kgsl-3d0/bus_split
-echo "1" > /sys/class/kgsl/kgsl-3d0/force_bus_on
-echo "1" > /sys/class/kgsl/kgsl-3d0/force_clk_on
-echo "1" > /sys/class/kgsl/kgsl-3d0/force_rail_on
+# Optimize the Adreno 530 GPU into delivering better overall graphical rendering performance, but do it with "respect" to battery life as well as power consumption as far as possible with less amount of possible tradeoffs;
+# echo "0" > /sys/class/kgsl/kgsl-3d0/bus_split
+# echo "72" > /sys/class/kgsl/kgsl-3d0/deep_nap_timer
+# echo "1" > /sys/class/kgsl/kgsl-3d0/force_bus_on
+# echo "1" > /sys/class/kgsl/kgsl-3d0/force_clk_on
+# echo "1" > /sys/class/kgsl/kgsl-3d0/force_rail_on
 
 # Decrease both battery as well as power consumption that is being caused by the screen by lowering how much light the pixels, the built-in LED switches and the LCD backlight module is releasing & "kicking out" by carefully tuning / adjusting their maximum values a little bit to the balanced overall range of their respective spectrums;
 echo "170" > /sys/class/leds/blue/max_brightness
@@ -159,18 +199,20 @@ echo "170" > /sys/class/leds/led:switch/max_brightness
 echo "170" > /sys/class/leds/red/max_brightness
 
 # Enable a tuned Boeffla wakelock blocker at boot for both better active & idle battery life;
-echo "wlan_pno_wl;wlan_ipa;wcnss_filter_lock;[timerfd];hal_bluetooth_lock;IPA_WS;sensor_ind;wlan;netmgr_wl;qcom_rx_wakelock;wlan_wow_wl;wlan_extscan_wl;" > /sys/class/misc/boeffla_wakelock_blocker/wakelock_blocker
+echo "enable_wlan_ws;enable_wlan_wow_wl_ws;enable_wlan_extscan_wl_ws;enable_timerfd_ws;enable_qcom_rx_wakelock_ws;enable_netmgr_wl_ws;enable_netlink_ws;enable_ipa_ws;" > /sys/class/misc/boeffla_wakelock_blocker/wakelock_blocker
+
 
 # Tweak and decrease tx_queue_len default stock value(s) for less amount of generated bufferbloat and for gaining slightly faster network speed and performance;
 for i in $(find /sys/class/net -type l); do
-  echo 128 > $i/tx_queue_len;
+  echo "128" > $i/tx_queue_len;
 done;
 
 # Enable Fast Charge for slightly faster battery charging when being connected to a USB 3.1 port, which can be good for the people that is often on the run or have limited access to a wall socket;
 echo "1" > /sys/kernel/fast_charge/force_fast_charge
 
 # Turn off even more additional useless kernel debuggers, masks and modules that is not really needed & used at all;
-# echo "N" > /sys/module/cpufreq/parameters/enable_underclock
+echo "Y" > /sys/module/bluetooth/parameters/disable_ertm
+echo "Y" > /sys/module/bluetooth/parameters/disable_esco
 echo "0" > /sys/module/dwc3/parameters/ep_addr_rxdbg_mask
 echo "0" > /sys/module/dwc3/parameters/ep_addr_txdbg_mask
 echo "0" > /sys/module/hid_apple/parameters/fnmode
@@ -187,50 +229,26 @@ echo "25000" > /sys/power/pm_freeze_timeout
 #Enable audio high performance mode by default
 echo "1" > /sys/module/snd_soc_wcd9330/parameters/high_perf_mode
 
-#Start schedutil tweaks
-#cpu0
-echo "schedutil" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-#cpu1
-echo "schedutil" > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor
-#cpu2
-echo "schedutil" > /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor
-#cpu3
-echo "schedutil" > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor
+#Fstrim for a final boost
+fstrim /data;
+fstrim /cache;
+fstrim /system;
 
-# Optimize and lower both the battery drain and overall power consumption that is caused by the Schedutil governor by biasing it to use slightly lower frequency steps, but do this without sacrificing performance or overall UI fluidity. See this as a balanced in-kernel power save mode, but without any notable traces of the "semi-typical" smoothness regressions;
-
-# Cpu 0;
-echo "18500" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/down_rate_limit_us
-echo "775" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/up_rate_limit_us
-
-# Cpu 1;
-echo "18500" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/down_rate_limit_us
-echo "775" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/up_rate_limit_us
-
-# Cpu 2;
-echo "18500" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/down_rate_limit_us
-echo "775" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/up_rate_limit_us
-
-# Cpu 3;
-echo "18500" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/down_rate_limit_us
-echo "775" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/up_rate_limit_us
-
+sleep 25;
 # Script log file location
-LOG_FILE=/storage/emulated/0/logs
 
 export TZ=$(getprop persist.sys.timezone);
-echo $(date) > /storage/emulated/0/logs/blackenedmodlog
+echo $(date) | tee -a $LOG_FILE
 if [ $? -eq 0 ]
 then
-  echo "02BlackenedMod v9.1 (Test Build #5) successfully executed!" >> /storage/emulated/0/logs/blackenedmodlog
+  echo "---------------------------------------------" | tee -a $LOG_FILE;
+  echo "02BlackenedMod v9.2 successfully executed!" | tee -a $LOG_FILE;
   exit 0
 else
-  echo "02BlackenedMod v9.1 (Test Build #5) failed." >> /storage/emulated/0/logs/blackenedmodlog
+  echo "---------------------------------------------" | tee -a $LOG_FILE;
+  echo "02BlackenedMod v9.2 failed, please check your installation." | tee -a $LOG_FILE;
   exit 1
 fi
-
-#Executes all running services
-sh /data/cooler.sh
   
 # Wait..
 # Done!
