@@ -70,7 +70,7 @@ elif [ $device == "walleye" ] || [ $device == "taimen" ] ; then
 		  ;;
 	esac
 elif [ $device == "walleye" ] || [ $device == "taimen" ] ; then
-    ui_print "You are using Pixel 2(XL), removing other pixel files"
+    ui_print "You are using Pixel 3(XL), removing other pixel files"
     cp -af $INSTALLER/common/bluecross/02BlackenedMod.sh /data/adb/service.d
     chmod 0755 /data/adb/service.d/02BlackenedMod.sh
     rm -r $INSTALLER/common/marlin
