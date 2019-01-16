@@ -1,7 +1,7 @@
 #!/system/bin/sh
 
 #
-# BlackenedMod v3.0 by the
+# BlackenedMod v1.0 by the
 # open source loving BlackenedMod team @ XDA;
 # Various strictly selected, carefully optimized & adjusted       # tweaks for better day to day performance & battery life,
 # specially tuned for the Google Pixel (XL) line-up;
@@ -290,7 +290,7 @@ fstrim /system;
 
 
 #Sleep to prevent not inputting the log
-sleep 5;
+sleep 25;
 # Export log to already designated location #5
 
 export TZ=$(getprop persist.sys.timezone);
@@ -298,11 +298,11 @@ echo $(date) | tee -a $LOG_FILE
 if [ $? -eq 0 ]
 then
   echo "---------------------------------------------" | tee -a $LOG_FILE;
-  echo "02BlackenedMod v9.2 successfully executed!" | tee -a $LOG_FILE;
+  echo "02BlackenedMod v1.0 successfully executed!" | tee -a $LOG_FILE;
   exit 0
 else
   echo "---------------------------------------------" | tee -a $LOG_FILE;
-  echo "02BlackenedMod v9.2 failed, please check your installation." | tee -a $LOG_FILE;
+  echo "02BlackenedMod v1.0 failed, please check your installation." | tee -a $LOG_FILE;
   exit 1
 fi
 

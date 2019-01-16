@@ -37,24 +37,34 @@ echo "schedutil" > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor
 
 # Optimize and lower both the battery drain and overall power consumption that is caused by the Schedutil governor by biasing it to use slightly lower frequency steps, but do this without sacrificing performance or overall UI fluidity. See this as a balanced in-kernel power save mode, but without any notable traces of the "semi-typical" smoothness regressions;
 
+#Add hispeed freq tweaks from pixel 3 because I have ported the governor
+
 echo "850" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/down_rate_limit_us
 echo "1" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/iowait_boost_enable
 echo "1275" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/up_rate_limit_us
+#echo "1228800" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/hispeed_freq
+#echo "1" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/hispeed_load
 
 #cpu1
 echo "850" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/down_rate_limit_us
 echo "1" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/iowait_boost_enable
 echo "1275" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/up_rate_limit_us
+#echo "1228800" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/hispeed_freq
+#echo "1" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/hispeed_load
 
 #cpu2
 echo "850" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/down_rate_limit_us
 echo "1" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/iowait_boost_enable
 echo "1275" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/up_rate_limit_us
+#echo "825600" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/hispeed_freq
+#echo "1" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/hispeed_load
 
 #cpu3
 echo "850" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/down_rate_limit_us
 echo "1" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/iowait_boost_enable
 echo "1275" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/up_rate_limit_us
+#echo "825600" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/hispeed_freq
+#echo "1" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/hispeed_load
 
 sleep 30;
 
@@ -237,16 +247,17 @@ fstrim /system;
 sleep 25;
 # Script log file location
 
+
 export TZ=$(getprop persist.sys.timezone);
 echo $(date) | tee -a $LOG_FILE
 if [ $? -eq 0 ]
 then
   echo "---------------------------------------------" | tee -a $LOG_FILE;
-  echo "02BlackenedMod v9.2 successfully executed!" | tee -a $LOG_FILE;
+  echo "03KingKernel v1.0 successfully executed!" | tee -a $LOG_FILE;
   exit 0
 else
   echo "---------------------------------------------" | tee -a $LOG_FILE;
-  echo "02BlackenedMod v9.2 failed, please check your installation." | tee -a $LOG_FILE;
+  echo "03KingKernel v1.0 failed, please check your installation." | tee -a $LOG_FILE;
   exit 1
 fi
   
