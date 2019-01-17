@@ -12,6 +12,9 @@ echo "BM started" | tee -a $LOG_FILE;
 
 #Immediate executions for boot
 
+#perfd can go screw itself, reduce to 10 on boot
+echo "10" > /dev/stune/top-app/schedtune.boost
+
 #Enable msm_thermal and core_control because of the improved thermals
 echo "Y" > /sys/module/msm_thermal/parameters/enabled
 echo "1" > /sys/module/msm_thermal/core_control/enabled
@@ -37,13 +40,14 @@ echo "schedutil" > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor
 
 # Optimize and lower both the battery drain and overall power consumption that is caused by the Schedutil governor by biasing it to use slightly lower frequency steps, but do this without sacrificing performance or overall UI fluidity. See this as a balanced in-kernel power save mode, but without any notable traces of the "semi-typical" smoothness regressions;
 
-#Add hispeed freq tweaks from pixel 3 because I have ported the governor
+#Add hispeed freq tweaks and enable pl from pixel 3 because I have ported the governor
 
 echo "850" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/down_rate_limit_us
 echo "1" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/iowait_boost_enable
 echo "1275" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/up_rate_limit_us
 #echo "1228800" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/hispeed_freq
 #echo "1" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/hispeed_load
+echo "1" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/pl
 
 #cpu1
 echo "850" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/down_rate_limit_us
@@ -51,6 +55,7 @@ echo "1" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/iowait_boost_enable
 echo "1275" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/up_rate_limit_us
 #echo "1228800" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/hispeed_freq
 #echo "1" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/hispeed_load
+echo "1" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/pl
 
 #cpu2
 echo "850" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/down_rate_limit_us
@@ -58,6 +63,7 @@ echo "1" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/iowait_boost_enable
 echo "1275" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/up_rate_limit_us
 #echo "825600" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/hispeed_freq
 #echo "1" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/hispeed_load
+echo "1" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/pl
 
 #cpu3
 echo "850" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/down_rate_limit_us
@@ -65,6 +71,7 @@ echo "1" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/iowait_boost_enable
 echo "1275" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/up_rate_limit_us
 #echo "825600" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/hispeed_freq
 #echo "1" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/hispeed_load
+echo "1" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/pl
 
 sleep 30;
 
@@ -238,6 +245,9 @@ echo "25000" > /sys/power/pm_freeze_timeout
 
 #Enable audio high performance mode by default
 echo "1" > /sys/module/snd_soc_wcd9330/parameters/high_perf_mode
+
+#perfd can go screw itself, reduce to 10 again because it may go up to 50 because perfd
+echo "10" > /dev/stune/top-app/schedtune.boost
 
 #Fstrim for a final boost
 fstrim /data;
