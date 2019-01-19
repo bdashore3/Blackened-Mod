@@ -97,6 +97,18 @@ echo "cfq" > /sys/block/sdd/queue/scheduler
 echo "cfq" > /sys/block/sde/queue/scheduler
 echo "cfq" > /sys/block/sdf/queue/scheduler
 
+# Tweak the various Flag Tuners for achieving slightly improved multitasking as well as overall better system performance and reduced power consumption;
+
+setprop MIN_HIDDEN_APPS false
+setprop ACTIVITY_INACTIVE_RESET_TIME false
+setprop MIN_RECENT_TASKS false
+setprop PROC_START_TIMEOUT false
+setprop CPU_MIN_CHECK_DURATION false
+setprop GC_TIMEOUT false
+setprop SERVICE_TIMEOUT false
+setprop MIN_CRASH_INTERVAL false
+setprop ENFORCE_PROCESS_LIMIT false
+
 # Disable exception-trace and reduce some overhead that is caused by a certain amount and percent of kernel logging, in case your kernel of choice have it enabled;
 echo "0" > /proc/sys/debug/exception-trace
 
