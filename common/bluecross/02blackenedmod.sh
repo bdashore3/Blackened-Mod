@@ -17,53 +17,45 @@ LOG_FILE=/storage/emulated/0/logs/blackenedmodlog
 echo " " > $LOG_FILE;
 echo "BM started" | tee -a $LOG_FILE;
 
-# Disable sysctl.conf to prevent ROM interference
-if [ -e /system/etc/sysctl.conf ]; then
-  mount -o remount,rw /system;
-  mv /system/etc/sysctl.conf /system/etc/sysctl.conf.bak;
-  mount -o remount,ro /system;
-fi;
+# Mounting tweak for better overall partition performance;
+busybox mount -o remount,nosuid,nodev,noatime,nodiratime,relatime -t auto /;
+busybox mount -o remount,nosuid,nodev,noatime,nodiratime,relatime -t auto /proc;
+busybox mount -o remount,nosuid,nodev,noatime,nodiratime,relatime -t auto /sys;
+busybox mount -o remount,nosuid,nodev,noatime,nodiratime,relatime,barrier=0,noauto_da_alloc,discard -t auto /data;
+busybox mount -o remount,nodev,noatime,nodiratime,relatime,barrier=0,noauto_da_alloc,discard -t auto /system;
 
-# Enable my own customized and optimized CPUSet configuration / set-up for achieving a better balance between battery life, power consumption as well as performance that is critically needed for daily usage;
+# Tweak the various Flag Tuners for achieving slightly improved multitasking as well as overall better system performance and reduced power consumption;
+
+setprop MIN_HIDDEN_APPS false
+setprop ACTIVITY_INACTIVE_RESET_TIME false
+setprop MIN_RECENT_TASKS false
+setprop PROC_START_TIMEOUT false
+setprop CPU_MIN_CHECK_DURATION false
+setprop GC_TIMEOUT false
+setprop SERVICE_TIMEOUT false
+setprop MIN_CRASH_INTERVAL false
+setprop ENFORCE_PROCESS_LIMIT false
+
+# Modify and enhance the default CPUSet Google set-up / values for a slight critically needed battery life bump;
 echo "0-3" > /dev/cpuset/background/cpus
-echo "0-3" > /dev/cpuset/foreground/cpus
-echo "4-5" > /dev/cpuset/kernel/cpus
-echo "4-7" > /dev/cpuset/restricted/cpus
-
-# Enable stune foreground boost for gaining a well-deserved & needed responsivness boost on top of it;
-echo "5" > /dev/stune/foreground/schedtune.boost
-
-# Disable the pre-enabled stune top-app boosting tunable for saving a very few critically & crucially needed percent of battery and thus conserving a certain amount of power;
-echo "0" > /dev/stune/top-app/schedtune.sched_boost_enabled
+echo "0-3" > /dev/cpuset/kernel/cpus
 
 # Disable exception-trace and reduce some overhead that is caused by a certain amount and percent of kernel logging, in case your kernel of choice have it enabled;
 echo "0" > /proc/sys/debug/exception-trace
 
-# FileSystem (FS) optimized tweaks & enhancements for a improved userspace experience;
+# FS tweaks for slightly better userspace performance;
 echo "0" > /proc/sys/fs/dir-notify-enable
 echo "20" > /proc/sys/fs/lease-break-time
 
-# A couple of minor kernel entropy tweaks & enhancements for a slight UI responsivness boost;
-echo "128" > /proc/sys/kernel/random/read_wakeup_threshold
-echo "96" > /proc/sys/kernel/random/urandom_min_reseed_secs
-echo "2560" > /proc/sys/kernel/random/write_wakeup_threshold
-
-# Kernel based tweaks that reduces the total amount of wasted CPU cycles and gives back a huge amount of needed performance as well as battery life savings to both the whole system and the user experience itself;
-echo "0" > /proc/sys/kernel/hung_task_selective_monitoring
-echo "0" > /proc/sys/kernel/panic
-echo "0" > /proc/sys/kernel/panic_on_oops
-echo "0" > /proc/sys/kernel/perf_cpu_time_max_percent
+# A few kernel tweaks for improved system responsivness;
 echo "15000000" > /proc/sys/kernel/sched_latency_ns
 echo "2000000" > /proc/sys/kernel/sched_min_granularity_ns
 echo "10000000" > /proc/sys/kernel/sched_wakeup_granularity_ns
 
-# Increase how much CPU bandwidth (CPU time) realtime scheduling processes are given for slightly improved system stability and minimized chance of system freezes & lockups;
-echo "980000" > /proc/sys/kernel/sched_rt_runtime_us
-
 # Disable in-kernel sched statistics for reduced overhead;
 echo "0" > /proc/sys/kernel/sched_schedstats
 
-# Network tweaks for slightly reduced battery consumption when being "actively" connected to a network connection;
+# Network tweaks for slightly reduced battery consumption when being actively connected to a network;
 echo "128" > /proc/sys/net/core/netdev_max_backlog
 echo "0" > /proc/sys/net/core/netdev_tstamp_prequeue
 echo "0" > /proc/sys/net/ipv4/cipso_cache_bucket_size
@@ -126,11 +118,6 @@ for i in $(find /sys/ -name log_ecn_error); do
 echo "0" > $i;
 done
 
-# Turn off all snapshot crashdumper modules;
-for i in $(find /sys/ -name snapshot_crashdumper); do
-echo "0" > $i;
-done
-
 # Disable the pre-enabled wake-vibrate functionality;
 echo "0" > /sys/android_touch/wake_vibrate
 
@@ -139,62 +126,55 @@ for i in /sys/block/*/queue/iosched; do
   echo "1" > $i/group_idle;
 done;
 
-# Disable CFQ low latency mode for overall increased IO based scheduling throughput and for better overall needed responsivness & performance from the system;
-for i in /sys/block/*/queue/iosched; do
-  echo "0" > $i/low_latency;
-done;
-
 # Wide block based tuning for reduced lag and less possible amount of general IO scheduling based overhead (Thanks to pkgnex @ XDA for the more than pretty much simplified version of this tweak. You really rock, dude!);
 for i in /sys/block/*/queue; do
   echo "0" > $i/add_random;
-  echo "0" > $i/discard_max_bytes;
-  echo "0" > $i/iopoll;
+  echo "0" > $i/io_poll;
   echo "0" > $i/iostats;
   echo "0" > $i/nomerges;
+  echo "32" > $i/nr_requests;
   echo "128" > $i/read_ahead_kb;
   echo "0" > $i/rotational;
   echo "1" > $i/rq_affinity;
+  echo "write through" > $i/write_cache;
 done;
 
-# Optimize the Adreno 630 GPU into delivering improved power efficiency, but do it without causing any real world, notable performance regressions of any possible kind;
-echo "0" > /sys/class/kgsl/kgsl-3d0/force_no_nap
-
-# Disable GPU frequency based throttling because it is actually not even needed anymore after all the GPU related enhancements and minor changes that I've done so far;
+# Disable GPU throttling because it's more or less useless;
 echo "0" > /sys/class/kgsl/kgsl-3d0/throttling
 
-# Enable a tuned Boeffla wakelock blocker at boot for both better active & idle battery life;
-echo "qcom_rx_wakelock;wlan;IPA_WS;netmgr_wl;wlan_pno_wl;wlan_wow_wl;wlan_ipa;wlan_extscan_wl;hal_bluetooth_lock;fts_tp;IPA_RM12;" > /sys/class/misc/boeffla_wakelock_blocker/wakelock_blocker
+# Enable a fully tuned and customized Boeffla kernel wakelock blocker for slightly better battery life during idle;
+echo "wlan;qcom_rx_wakelock;netmgr_wl;IPA_WS;fts_tp;sthal_transit_wake_lock;IPA_RM12;hal_bluetooth_lock;IPA_RM14;" > /sys/class/misc/boeffla_wakelock_blocker/wakelock_blocker
 
 # Tweak and decrease tx_queue_len default stock value(s) for less amount of generated bufferbloat and for gaining slightly faster network speed and performance;
 for i in $(find /sys/class/net -type l); do
   echo "128" > $i/tx_queue_len;
 done;
 
-# Enable Schedutil hispeed_freq and tweak it for maximal userspace smoothness and device responsivness while keeping overall power consumption, as well as every (im)possible trace of system jank and stuttering, at bay;
-
-# Little Cluster
-echo "1228800" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/hispeed_freq
-echo "1" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/hispeed_load
-
-# Big Cluster
-echo "825600" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/hispeed_freq
-echo "1" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/hispeed_load
-
-# Fully disable a very few CPU based & useless EDAC tunable loggers for overall slightly reduced CPU overhead;
-echo "0" > /sys/devices/system/edac/cpu/log_ce
-echo "0" > /sys/devices/system/edac/cpu/log_ue
-echo "0" > /sys/devices/system/edac/cpu/panic_on_ue
-
-# Tweak the kernel task scheduler for improved overall system performance and user interface responsivness during all kind of possible workload based scenarios;
+# Disable Gentle Fair Sleepers for better UI smoothness;
 echo "NO_GENTLE_FAIR_SLEEPERS" > /sys/kernel/debug/sched_features
-echo "NO_LB_BIAS" >  /sys/kernel/debug/sched_features
-echo "NO_TTWU_QUEUE" > /sys/kernel/debug/sched_features
-echo "NO_RT_PUSH_IPI" >  /sys/kernel/debug/sched_features
-echo "NO_RT_RUNTIME_SHARE" > /sys/kernel/debug/sched_features
 
-# Turn off even more additional useless kernel debuggers, masks and modules that is not really needed & used at all;
+# Enable Fast Charge for slightly faster battery charging when being connected to a USB 3.1 port, which can be good for the people that is often on the run or have limited access to a wall socket;
+echo "1" > /sys/kernel/fast_charge/force_fast_charge
+
+# Disable a few minor and overall pretty useless modules for slightly better battery life & system wide performance;
 echo "Y" > /sys/module/bluetooth/parameters/disable_ertm
 echo "Y" > /sys/module/bluetooth/parameters/disable_esco
+
+# Tweak the custom boosting drivers and give everyone the choice enable & apply what they might prefer to use;
+# echo "15" > /sys/module/cpu_input_boost/parameters/dynamic_stune_boost # Dynamic Stune
+# echo "825600" > /sys/module/cpu_input_boost/parameters/general_boost_freq_hp # Dynamic Stune
+# echo "979200" > /sys/module/cpu_input_boost/parameters/general_boost_freq_lp # Dynamic Stune
+# echo "15" > /sys/module/cpu_input_boost/parameters/general_stune_boost # Dynamic Stune
+# echo "825600" > /sys/module/cpu_input_boost/parameters/input_boost_awake_return_freq_hp # CPU Input Boost
+# echo "576000" > /sys/module/cpu_input_boost/parameters/input_boost_awake_return_freq_lp # CPU Input Boost
+# echo "1555" > /sys/module/cpu_input_boost/parameters/input_boost_duration # Dynamic Stune
+# echo "64" > /sys/module/cpu_input_boost/parameters/input_boost_duration # CPU Input Boost
+# echo "825600" > /sys/module/cpu_input_boost/parameters/input_boost_freq_hp # CPU Input Boost
+# echo "1228800" > /sys/module/cpu_input_boost/parameters/input_boost_freq_lp # CPU Input Boost
+# echo "0" > /sys/module/cpu_input_boost/parameters/remove_input_boost_freq_lp # CPU Input Boost
+# echo "0" > /sys/module/cpu_input_boost/parameters/remove_input_boost_freq_perf # CPU Input Boost
+
+# Turn off even more additional useless kernel debuggers, masks and modules that is not really needed & used at all;
 echo "Y" > /sys/module/cryptomgr/parameters/notests
 echo "0" > /sys/module/diagchar/parameters/diag_mask_clear_param
 echo "0" > /sys/module/dwc3/parameters/ep_addr_rxdbg_mask
@@ -205,16 +185,23 @@ echo "0" > /sys/module/hid_apple/parameters/iso_layout
 echo "0" > /sys/module/hid_magicmouse/parameters/emulate_3button
 echo "0" > /sys/module/hid_magicmouse/parameters/emulate_scroll_wheel
 echo "0" > /sys/module/icnss/parameters/dynamic_feature_mask
+echo "0" > /sys/module/lowmemorykiller/parameters/lmk_fast_run
+echo "0" > /sys/module/lowmemorykiller/parameters/oom_reaper
 echo "Y" > /sys/module/msm_drm/parameters/backlight_dimmer
 echo "0" > /sys/module/mt20xx/parameters/tv_antenna
 echo "0" > /sys/module/ppp_generic/parameters/mp_protocol_compress
 echo "0" > /sys/module/rmnet_data/parameters/rmnet_data_log_level
 echo "0" > /sys/module/service_locator/parameters/enable
-# echo "Y" > /sys/module/workqueue/parameters/power_efficient
 # echo "N" > /sys/module/sync/parameters/fsync_enabled
+echo "Y" > /sys/module/workqueue/parameters/power_efficient
 
-# A miscellaneous pm_async tweak that increases the amount of time (in milliseconds) before user processes & kernel threads are being frozen & "put to sleep";
-echo "25000" > /sys/power/pm_freeze_timeout
+# Enable deep in-memory sleep when suspending for less idle battery drain when the system decides to suspend;
+echo "deep" > /sys/power/mem_sleep
+
+# Trim selected partitions at boot for a more than well-deserved and nice speed boost;
+# fstrim /data;
+# fstrim /cache;
+# fstrim /system;
 
 # Push a semi-needed log to the internal storage with a "report" if the script could be executed or not;
 
