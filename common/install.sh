@@ -1,5 +1,61 @@
 #!/system/bin/sh
 
+keytest() {
+  ui_print "** Vol Key Test **"
+  ui_print "** Press Vol UP **"
+  (/system/bin/getevent -lc 1 2>&1 | /system/bin/grep VOLUME | /system/bin/grep " DOWN" > $INSTALLER/events) || return 1
+  return 0
+}
+
+set_bindir(){
+  local bindir=/system/bin
+  local xbindir=/system/xbin
+
+  # Check for existence of /system/xbin directory.
+  if [ ! -d /sbin/.core/mirror$xbindir ]; then
+    # Use /system/bin instead of /system/xbin.
+    mkdir -p $MODPATH$bindir
+    mv $MODPATH$xbindir/sqlite3 $MODPATH$bindir
+    rmdir $MODPATH$xbindir
+    xbindir=$bindir
+ fi
+
+ ui_print "- Installed to $xbindir"
+}
+
+chooseport() {
+  #note from chainfire @xda-developers: getevent behaves weird when piped, and busybox grep likes that even less than toolbox/toybox grep
+  while true; do
+    /system/bin/getevent -lc 1 2>&1 | /system/bin/grep VOLUME | /system/bin/grep " DOWN" > $INSTALLER/events
+    if (`cat $INSTALLER/events 2>/dev/null | /system/bin/grep VOLUME >/dev/null`); then
+      break
+    fi
+  done
+  if (`cat $INSTALLER/events 2>/dev/null | /system/bin/grep VOLUMEUP >/dev/null`); then
+    return 0
+  else
+    return 1
+  fi
+}
+
+chooseportold() {
+  # Calling it first time detects previous input. Calling it second time will do what we want
+  $KEYCHECK
+  SEL=$?
+  if [ "$1" == "UP" ]; then
+    UP=$SEL
+  elif [ "$1" == "DOWN" ]; then
+    DOWN=$SEL
+  elif [ $SEL -eq $UP ]; then
+    return 0
+  elif [ $SEL -eq $DOWN ]; then
+    return 1
+  else
+    ui_print "**  Vol key not detected **"
+    abort "** Use name change method in TWRP **"
+  fi
+}
+
 #Install script for BlackenedMod
 
 #Remove old versions
@@ -8,8 +64,41 @@ rm -r /data/adb/service.d/02BlackenedMod.sh
 rm -r /data/adb/service.d/Zipalign_sqlite.sh
 rm -r /data/adb/service.d/03KingKernel.sh
 
-cp -af $INSTALLER/common/Zipalign_sqlite.sh /data/adb/service.d
-chmod 0755 /data/adb/service.d/Zipalign_sqlite.sh
+# Keycheck binary by someone755 @Github, idea for code below by Zappo @xda-developers
+KEYCHECK=$INSTALLER/common/keycheck
+chmod 755 $KEYCHECK
+
+ui_print " "
+if keytest; then
+    FUNCTION=chooseport
+else
+    FUNCTION=chooseportold
+    ui_print "** Volume button programming **"
+    ui_print " "
+    ui_print "** Press Vol UP again **"
+    $FUNCTION "UP"
+    ui_print "**  Press Vol DOWN **"
+    $FUNCTION "DOWN"
+fi
+ui_print "There are Zipalign and SQlite tweaks in BlackenedMod"
+ui_print "These can enhance battery life and make the device run smoother"
+ui_print "However, apps can stop working with sqlite tweaks"
+ui_print "Please indicate whether you want them"
+ui_print " "
+ui_print "   Vol(+) = Yes"
+ui_print "   Vol(-) = No"
+ui_print " "
+if $FUNCTION; then
+    ui_print " Cool! Installing Sqlite tweaks... "
+    ui_print " "
+    set_bindir
+    cp -af $INSTALLER/common/Zipalign_sqlite.sh /data/adb/service.d
+    chmod 0755 /data/adb/service.d/Zipalign_sqlite.sh
+    ui_print " "
+else
+    ui_print " Skipping Sqlite Tweaks..."
+    ui_print " "
+fi;
 
 #set device variable
 device="$(getprop ro.product.device)"
