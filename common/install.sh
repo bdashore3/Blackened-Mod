@@ -143,7 +143,7 @@ elif [ $device == "walleye" ] || [ $device == "taimen" ] ; then
           rm -r $INSTALLER/common/bluecross
 		  ;;
 	esac
-elif [ $device == "walleye" ] || [ $device == "taimen" ] ; then
+elif [ $device == "crosshatch" ] || [ $device == "blueline" ] ; then
     ui_print "You are using Pixel 3(XL), removing other pixel files"
     cp -af $INSTALLER/common/bluecross/02BlackenedMod.sh /data/adb/service.d
     chmod 0755 /data/adb/service.d/02BlackenedMod.sh
@@ -151,6 +151,6 @@ elif [ $device == "walleye" ] || [ $device == "taimen" ] ; then
     rm -r $INSTALLER/common/wahoo
     rm -r $INSTALLER/common/bluecross
 else
-	ui_print "You are not on Pixel or Pixel 2! Aborting..."
+	ui_print "You are not on a pixel device, Don't try to cheat! Aborting..."
 	exit
 fi;
