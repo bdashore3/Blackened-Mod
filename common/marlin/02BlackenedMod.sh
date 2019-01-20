@@ -8,7 +8,7 @@
 #
 
 # Pause script execution a little for Magisk Boot Service;
-sleep 45;
+sleep 65;
 #make logs folder and set logs var #5
 mkdir /storage/emulated/0/logs
 LOG_FILE=/storage/emulated/0/logs/blackenedmodlog
@@ -159,12 +159,14 @@ done;
 # Wide block based tuning for reduced lag and less possible amount of general IO scheduling based overhead (Thanks to pkgnex @ XDA for the more than pretty much simplified version of this tweak. You really rock, dude!);
 for i in /sys/block/*/queue; do
   echo "0" > $i/add_random;
-  echo "0" > $i/discard_max_bytes;
+  echo "0" > $i/io_poll;
   echo "0" > $i/iostats;
   echo "0" > $i/nomerges;
+  echo "32" > $i/nr_requests;
   echo "128" > $i/read_ahead_kb;
   echo "0" > $i/rotational;
   echo "1" > $i/rq_affinity;
+  echo "write through" > $i/write_cache;
 done;
 
 # Shift to instead use the simple_ondemand GPU governor for gaining a overall better peak balance between battery life and performance for daily usage;

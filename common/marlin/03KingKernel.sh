@@ -205,14 +205,15 @@ echo "0" > /sys/android_touch/vib_strength
 # Wide block based tuning for reduced lag and less possible amount of general IO scheduling based overhead (Thanks to pkgnex @ XDA for the more than pretty much simplified version of this tweak. You really rock, dude!); #5
 for i in /sys/block/*/queue; do
   echo "0" > $i/add_random;
-  echo "0" > $i/discard_max_bytes;
+  echo "0" > $i/io_poll;
   echo "0" > $i/iostats;
   echo "0" > $i/nomerges;
+  echo "32" > $i/nr_requests;
   echo "128" > $i/read_ahead_kb;
   echo "0" > $i/rotational;
   echo "1" > $i/rq_affinity;
+  echo "write through" > $i/write_cache;
 done;
-
 # Optimize the Adreno 530 GPU into delivering better overall graphical rendering performance, but do it with "respect" to battery life as well as power consumption as far as possible with less amount of possible tradeoffs;
 # echo "0" > /sys/class/kgsl/kgsl-3d0/bus_split
 # echo "72" > /sys/class/kgsl/kgsl-3d0/deep_nap_timer

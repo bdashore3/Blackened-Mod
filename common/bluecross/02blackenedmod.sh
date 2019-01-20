@@ -8,7 +8,7 @@
 #
 
 #sleep for magiskboot service
-sleep 45;
+sleep 65;
 #make logs folder and set logs var #5
 mkdir /storage/emulated/0/logs
 LOG_FILE=/storage/emulated/0/logs/blackenedmodlog
