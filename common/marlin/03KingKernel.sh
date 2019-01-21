@@ -12,9 +12,6 @@ echo "BM started" | tee -a $LOG_FILE;
 
 #Immediate executions for boot
 
-#perfd can go screw itself, reduce to 10 on boot
-echo "10" > /dev/stune/top-app/schedtune.boost
-
 #Enable msm_thermal and core_control because of the improved thermals
 echo "Y" > /sys/module/msm_thermal/parameters/enabled
 echo "1" > /sys/module/msm_thermal/core_control/enabled
@@ -43,35 +40,35 @@ echo "schedutil" > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor
 #Add hispeed freq tweaks and enable pl from pixel 3 because I have ported the governor
 
 echo "850" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/down_rate_limit_us
-echo "1" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/iowait_boost_enable
+echo "0" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/iowait_boost_enable
 echo "1275" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/up_rate_limit_us
 #echo "1228800" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/hispeed_freq
 #echo "1" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/hispeed_load
-echo "1" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/pl
+echo "0" > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/pl
 
 #cpu1
 echo "850" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/down_rate_limit_us
-echo "1" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/iowait_boost_enable
+echo "0" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/iowait_boost_enable
 echo "1275" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/up_rate_limit_us
 #echo "1228800" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/hispeed_freq
 #echo "1" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/hispeed_load
-echo "1" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/pl
+echo "0" > /sys/devices/system/cpu/cpu1/cpufreq/schedutil/pl
 
 #cpu2
 echo "850" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/down_rate_limit_us
-echo "1" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/iowait_boost_enable
+echo "0" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/iowait_boost_enable
 echo "1275" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/up_rate_limit_us
 #echo "825600" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/hispeed_freq
 #echo "1" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/hispeed_load
-echo "1" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/pl
+echo "0" > /sys/devices/system/cpu/cpu2/cpufreq/schedutil/pl
 
 #cpu3
 echo "850" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/down_rate_limit_us
-echo "1" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/iowait_boost_enable
+echo "0" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/iowait_boost_enable
 echo "1275" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/up_rate_limit_us
 #echo "825600" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/hispeed_freq
 #echo "1" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/hispeed_load
-echo "1" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/pl
+echo "0" > /sys/devices/system/cpu/cpu3/cpufreq/schedutil/pl
 
 sleep 30;
 
@@ -214,7 +211,7 @@ for i in /sys/block/*/queue; do
   echo "1" > $i/rq_affinity;
   echo "write through" > $i/write_cache;
 done;
-# Optimize the Adreno 530 GPU into delivering better overall graphical rendering performance, but do it with "respect" to battery life as well as power consumption as far as possible with less amount of possible tradeoffs;
+# Optimize the Adreno 530 GPU into delivering better overall graphical rendering performance, but do it with "respect" to battery life as well as power consumption as far as possible with less amount of possible tradeoffs; (Commented out because adrenoidler/boost is in the kernel already)
 # echo "0" > /sys/class/kgsl/kgsl-3d0/bus_split
 # echo "72" > /sys/class/kgsl/kgsl-3d0/deep_nap_timer
 # echo "1" > /sys/class/kgsl/kgsl-3d0/force_bus_on
@@ -258,9 +255,6 @@ echo "25000" > /sys/power/pm_freeze_timeout
 
 #Enable audio high performance mode by default
 echo "1" > /sys/module/snd_soc_wcd9330/parameters/high_perf_mode
-
-#perfd can go screw itself, reduce to 10 again because it may go up to 50 because perfd
-echo "10" > /dev/stune/top-app/schedtune.boost
 
 #Fstrim for a final boost
 fstrim /data;
