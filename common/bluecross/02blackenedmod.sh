@@ -157,8 +157,8 @@ echo "NO_GENTLE_FAIR_SLEEPERS" > /sys/kernel/debug/sched_features
 echo "1" > /sys/kernel/fast_charge/force_fast_charge
 
 # Disable a few minor and overall pretty useless modules for slightly better battery life & system wide performance;
-echo "Y" > /sys/module/bluetooth/parameters/disable_ertm
-echo "Y" > /sys/module/bluetooth/parameters/disable_esco
+# echo "Y" > /sys/module/bluetooth/parameters/disable_ertm
+# echo "Y" > /sys/module/bluetooth/parameters/disable_esco
 
 # Tweak the custom boosting drivers and give everyone the choice enable & apply what they might prefer to use;
 # echo "15" > /sys/module/cpu_input_boost/parameters/dynamic_stune_boost # Dynamic Stune

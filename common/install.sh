@@ -68,6 +68,56 @@ rm -r /data/adb/service.d/03KingKernel.sh
 KEYCHECK=$INSTALLER/common/keycheck
 chmod 755 $KEYCHECK
 
+#set device variable
+device="$(getprop ro.product.device)"
+if [ $device == "marlin" ] || [ $device == "sailfish" ] ; then
+	ui_print " "; ui_print "You are using Pixel(XL), removing other files"
+    kernelver=$(uname -a)
+    #check for KingKernel and install its boot tweaks
+	case "$kernelver" in
+	  *KingKernel*)
+		  ui_print " "; ui_print "You're using KingKernel, nice! Applying my modified version of BM..."
+		  cat $INSTALLER/common/marlin/03KingKernel.sh >> $INSTALLER/common/service.sh
+		  rm -r $INSTALLER/common/marlin
+		  rm -r $INSTALLER/common/wahoo
+          rm -r $INSTALLER/common/bluecross
+		  ;;
+      *)
+		  cat $INSTALLER/common/marlin/02BlackenedMod.sh >> $INSTALLER/common/service.sh
+		  rm -r $INSTALLER/common/marlin
+		  rm -r $INSTALLER/common/wahoo
+          rm -r $INSTALLER/common/bluecross
+		  ;;
+	esac
+elif [ $device == "walleye" ] || [ $device == "taimen" ] ; then
+    ui_print "You are using Pixel 2(XL), removing other files"
+    kernelver=$(uname -a)
+	case "$kernelver" in
+	  *KingKernel*)
+		  ui_print " "; ui_print "You're using KingKernel, nice! Applying my modified version of BM..."
+		  cat $INSTALLER/common/wahoo/03KingKernel.sh >> $INSTALLER/common/service.sh
+		  rm -r $INSTALLER/common/marlin
+		  rm -r $INSTALLER/common/wahoo
+          rm -r $INSTALLER/common/bluecross
+		  ;;
+      *)
+		  cat $INSTALLER/common/wahoo/02BlackenedMod.sh >> $INSTALLER/common/service.sh
+		  rm -r $INSTALLER/common/marlin
+		  rm -r $INSTALLER/common/wahoo
+          rm -r $INSTALLER/common/bluecross
+		  ;;
+	esac
+elif [ $device == "crosshatch" ] || [ $device == "blueline" ] ; then
+    ui_print "You are using Pixel 3(XL), removing other pixel files"
+    cat $INSTALLER/common/bluecross/02BlackenedMod.sh >> $INSTALLER/common/service.sh
+    rm -r $INSTALLER/common/marlin
+    rm -r $INSTALLER/common/wahoo
+    rm -r $INSTALLER/common/bluecross
+else
+	ui_print "You are not on a pixel device, Don't try to cheat! Aborting..."
+	exit
+fi;
+
 ui_print " "
 if keytest; then
     FUNCTION=chooseport
@@ -92,65 +142,10 @@ if $FUNCTION; then
     ui_print " Cool! Installing Sqlite tweaks... "
     ui_print " "
     set_bindir
-    cp -af $INSTALLER/common/Zipalign_sqlite.sh /data/adb/service.d
-    chmod 0755 /data/adb/service.d/Zipalign_sqlite.sh
+    cat $INSTALLER/common/Zipalign_sqlite.sh >> $INSTALLER/common/service.sh
+    rm -rf $INSTALLER/common/Zipalign_sqlite.sh
     ui_print " "
 else
     ui_print " Skipping Sqlite Tweaks..."
     ui_print " "
-fi;
-
-#set device variable
-device="$(getprop ro.product.device)"
-if [ $device == "marlin" ] || [ $device == "sailfish" ] ; then
-	ui_print " "; ui_print "You are using Pixel(XL), removing other files"
-    kernelver=$(uname -a)
-    #check for KingKernel and install its boot tweaks
-	case "$kernelver" in
-	  *KingKernel*)
-		  ui_print " "; ui_print "You're using KingKernel, nice! Applying my modified version of BM..."
-		  cp -af $INSTALLER/common/marlin/03KingKernel.sh /data/adb/service.d
-		  chmod 0755 /data/adb/service.d/03KingKernel.sh
-		  rm -r $INSTALLER/common/marlin
-		  rm -r $INSTALLER/common/wahoo
-          rm -r $INSTALLER/common/bluecross
-		  ;;
-      *)
-		  cp -af $INSTALLER/common/marlin/02BlackenedMod.sh /data/adb/service.d
-		  chmod 0755 /data/adb/service.d/02BlackenedMod.sh
-		  rm -r $INSTALLER/common/marlin
-		  rm -r $INSTALLER/common/wahoo
-          rm -r $INSTALLER/common/bluecross
-		  ;;
-	esac
-elif [ $device == "walleye" ] || [ $device == "taimen" ] ; then
-    ui_print "You are using Pixel 2(XL), removing other files"
-    kernelver=$(uname -a)
-	case "$kernelver" in
-	  *KingKernel*)
-		  ui_print " "; ui_print "You're using KingKernel, nice! Applying my modified version of BM..."
-		  cp -af $INSTALLER/common/wahoo/03KingKernel.sh /data/adb/service.d
-		  chmod 0755 /data/adb/service.d/03KingKernel.sh
-		  rm -r $INSTALLER/common/marlin
-		  rm -r $INSTALLER/common/wahoo
-          rm -r $INSTALLER/common/bluecross
-		  ;;
-      *)
-		  cp -af $INSTALLER/common/wahoo/02BlackenedMod.sh /data/adb/service.d
-		  chmod 0755 /data/adb/service.d/02BlackenedMod.sh
-		  rm -r $INSTALLER/common/marlin
-		  rm -r $INSTALLER/common/wahoo
-          rm -r $INSTALLER/common/bluecross
-		  ;;
-	esac
-elif [ $device == "crosshatch" ] || [ $device == "blueline" ] ; then
-    ui_print "You are using Pixel 3(XL), removing other pixel files"
-    cp -af $INSTALLER/common/bluecross/02BlackenedMod.sh /data/adb/service.d
-    chmod 0755 /data/adb/service.d/02BlackenedMod.sh
-    rm -r $INSTALLER/common/marlin
-    rm -r $INSTALLER/common/wahoo
-    rm -r $INSTALLER/common/bluecross
-else
-	ui_print "You are not on a pixel device, Don't try to cheat! Aborting..."
-	exit
 fi;

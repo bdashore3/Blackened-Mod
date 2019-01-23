@@ -1,7 +1,6 @@
 #!/system/bin/sh
 
-sleep 25;
-
+#executed after Respective BlackenedMod file
 # Zipalign log file location
 LOG_FILE=/storage/emulated/0/logs/zipalign.log
 
